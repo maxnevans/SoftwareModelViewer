@@ -34,13 +34,13 @@
   <ItemGroup>
     <ClInclude Include="src\Core.h" />
     <ClInclude Include="src\Exception.h" />
-    <ClInclude Include="src\Geometry.h" />
+    <ClInclude Include="src\math\Geometry.h" />
     <ClInclude Include="src\MainWindow.h" />
-    <ClInclude Include="src\Matrix.h" />
+    <ClInclude Include="src\math\Matrix.h" />
     <ClInclude Include="src\ModelViewerApp.h" />
     <ClInclude Include="src\ModelViewerWindowMessage.h" />
     <ClInclude Include="src\pch.h" />
-    <ClInclude Include="src\Vector.h" />
+    <ClInclude Include="src\math\Vector.h" />
     <ClInclude Include="src\Win32Exception.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
