@@ -7,6 +7,7 @@
 #include <random>
 #include <cmath>
 #include <functional>
+#include <valarray>
 
 // Windows Header Files
 #include <windows.h>
