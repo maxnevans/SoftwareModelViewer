@@ -17,6 +17,7 @@ namespace ModelViewer
         public:
             Rasterizer(Gdiplus::Bitmap& frame);
             void drawPixel(int x, int y, Color color);
+            void drawLine(int x1, int y1, int x2, int y2, Color color);
 
         private:
             Gdiplus::Bitmap& m_Frame;

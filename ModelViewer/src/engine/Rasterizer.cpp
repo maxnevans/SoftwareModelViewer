@@ -21,6 +21,36 @@ namespace ModelViewer
 
             m_Frame.SetPixel(x, y, Gdiplus::Color{ 0xFF, color.r, color.g, color.b});
         }
+
+        void Rasterizer::drawLine(int x1, int y1, int x2, int y2, Color color)
+        {
+            expect(x1 >= 0);
+            expect((UINT)x1 < m_Frame.GetWidth());
+            expect(y1 >= 0);
+            expect((UINT)y1 < m_Frame.GetHeight());
+            expect(x2 >= 0);
+            expect((UINT)x2 < m_Frame.GetWidth());
+            expect(y2 >= 0);
+            expect((UINT)y2 < m_Frame.GetHeight());
+
+            // DDA-line algorithm
+
+            int xDistance = std::abs(x1 - x2);
+            int yDistance = std::abs(y1 - y2);
+
+            int numberIterations = xDistance > yDistance ? xDistance : yDistance;
+
+            int x = x1;
+            int y = y1;
+            for (int i = 0; i < numberIterations; i++)
+            {
+                auto xGrowth = static_cast<float>(x2 - x1) / numberIterations;
+                auto yGrowth = static_cast<float>(y2 - y1) / numberIterations;
+                x += static_cast<int>(xGrowth);
+                y += static_cast<int>(yGrowth);
+                drawPixel(x, y, color);
+            }
+        }
     }
 }
 
