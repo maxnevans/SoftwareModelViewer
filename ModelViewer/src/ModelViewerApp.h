@@ -19,7 +19,7 @@ namespace ModelViewer
         void start();
         bool stop(DWORD waitMilliseconds = INFINITE);
         bool didStop() const;
-        void draw(Gdiplus::Graphics& gfx, const AdditionalDrawData& data);
+        void draw(Gdiplus::Bitmap& frame, const AdditionalDrawData& data);
         void loadMeshFromFile(const std::wstring& filename, OnLoadCallback cb = nullptr);
 
     private:

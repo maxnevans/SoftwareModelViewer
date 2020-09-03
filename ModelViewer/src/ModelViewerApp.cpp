@@ -1,6 +1,7 @@
 #pragma once
 #include "pch.h"
 #include "ModelViewerApp.h"
+#include "engine/Rasterizer.h"
 
 namespace ModelViewer
 {
@@ -22,10 +23,13 @@ namespace ModelViewer
         return true;
     }
 
-    void ModelViewerApp::draw(Gdiplus::Graphics& gfx, const AdditionalDrawData& data)
+    void ModelViewerApp::draw(Gdiplus::Bitmap& frame, const AdditionalDrawData& data)
     {
-        gfx.FillRectangle(&Gdiplus::SolidBrush(Gdiplus::Color(180, 180, 180)),
-            Gdiplus::Rect(0, 0, data.dimensions.width, data.dimensions.height));
+        Engine::Rasterizer gfx(frame);
+
+        for (int i = 0; i < 100; i++)
+            for (int j = 0; j < 100; j++)
+                gfx.drawPixel(i, j, {0xAA, 0xAA, 0xAA});
     }
 
     void ModelViewerApp::loadMeshFromFile(const std::wstring& filename, OnLoadCallback cb)

@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\engine\Graphics.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\MainWindow.cpp" />
     <ClCompile Include="src\ModelViewerApp.cpp" />
@@ -33,6 +34,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Core.h" />
+    <ClInclude Include="src\engine\Graphics.h" />
+    <ClInclude Include="src\engine\ObjectParser.h" />
     <ClInclude Include="src\Exception.h" />
     <ClInclude Include="src\math\Geometry.h" />
     <ClInclude Include="src\MainWindow.h" />
