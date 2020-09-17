@@ -18,6 +18,16 @@ namespace ModelViewer
         {
         }
 
+        size_t getNumberRows() const
+        {
+            return m_NumberRows;
+        }
+
+        size_t getNumberColumns() const
+        {
+            return m_NumberColumns;
+        }
+
         Matrix operator*(const Matrix& matrix) const
         {
             expect(m_NumberColumns == matrix.m_NumberRows);
@@ -41,15 +51,16 @@ namespace ModelViewer
 
         Matrix& operator*=(const Matrix& matrix)
         {
-            if (m_Data.size() == 0)
+            if (m_NumberColumns == 0 || m_NumberRows == 0)
                 return *this;
 
             *this = *this * matrix;
             return *this;
         }
 
-        Matrix operator*(T number)
+        Matrix operator*(T number) const
         {
+
             return Matrix(m_Data * number, m_NumberRows, m_NumberColumns);
         }
 
@@ -62,7 +73,17 @@ namespace ModelViewer
             return *this;
         }
 
-        Matrix operator+(const Matrix& matrix)
+        Matrix operator/(T number) const
+        {
+            return *this * (static_cast<T>(1) / number);
+        }
+
+        Matrix& operator/=(T number)
+        {
+            return *this *= (static_cast<T>(1) / number);
+        }
+
+        Matrix operator+(const Matrix& matrix) const
         {
             expect(m_NumberRows == matrix.m_NumberRows && m_NumberColumns == matrix.m_NumberColumns);
             return Matrix(m_Data + matrix.m_Data, m_NumberRows, m_NumberColumns);
@@ -75,6 +96,35 @@ namespace ModelViewer
             return *this;
         }
 
+        Matrix operator+(T number) const
+        {
+            if (m_NumberColumns == 0 || m_NumberRows == 0)
+                return Matrix{};
+
+            std::valarray<T> newData = m_Data + number;
+
+            return Matrix<T>(std::move(newData), m_NumberRows, m_NumberColumns);
+        }
+
+        Matrix& operator+=(T number)
+        {
+            if (m_NumberColumns == 0 || m_NumberRows == 0)
+                return *this;
+
+            m_Data += number;
+            return *this;
+        }
+
+        Matrix operator-(T number) const
+        {
+            return *this + (-number);
+        }
+
+        Matrix& operator-=(T number)
+        {
+            return *this += -number;
+        }
+
         inline T& at(size_t row, size_t column)
         {
             if (row >= m_NumberRows)
@@ -84,6 +134,14 @@ namespace ModelViewer
                 throw std::out_of_range("matrix column index out of range");
 
             return m_Data[row * m_NumberColumns + column];
+        }
+
+        template<typename E>
+        Matrix<E> staticCast() const
+        {
+            std::valarray<E> arr(this->m_Data.size());
+            std::copy(std::begin(this->m_Data), std::end(this->m_Data), std::begin(arr));
+            return Matrix<E>(std::move(arr), this->m_NumberRows, this->m_NumberColumns);
         }
 
     protected:

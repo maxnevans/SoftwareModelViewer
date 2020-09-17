@@ -44,6 +44,7 @@ namespace ModelViewer
         LRESULT p_WmDestroy(UINT, WPARAM, LPARAM);
         LRESULT p_WmEraseBackground(UINT, WPARAM, LPARAM);
         LRESULT p_WmModelViewer(UINT, WPARAM, LPARAM);
+        LRESULT p_WmKeyDown(UINT, WPARAM, LPARAM);
 
     private:
         static constexpr const wchar_t* WINDOW_NAME = L"Model Viewer";

@@ -8,6 +8,8 @@
 #include <cmath>
 #include <functional>
 #include <valarray>
+#include <fstream>
+#include <array>
 
 // Windows Header Files
 #include <windows.h>

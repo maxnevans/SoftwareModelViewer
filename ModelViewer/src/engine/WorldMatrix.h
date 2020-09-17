@@ -89,7 +89,7 @@ namespace ModelViewer
         }
 
         template<typename T>
-        Vector<T> rotateY(double angle)
+        Vector<T> rotateY(const Vector<T>& vec, double angle)
         {
             expect(vec.size() == 4);
 
@@ -97,7 +97,7 @@ namespace ModelViewer
         }
 
         template<typename T>
-        Vector<T> rotateZ(double angle)
+        Vector<T> rotateZ(const Vector<T>& vec, double angle)
         {
             expect(vec.size() == 4);
 

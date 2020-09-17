@@ -143,6 +143,7 @@ namespace ModelViewer
             case WM_ERASEBKGND:                             return p_WmEraseBackground(uMsg, wParam, lParam);
             case WM_CLOSE:                                  return p_WmClose(uMsg, wParam, lParam);
             case WM_DESTROY:                                return p_WmDestroy(uMsg, wParam, lParam);
+            case WM_KEYDOWN:                                return p_WmKeyDown(uMsg, wParam, lParam);
             case ModelViewerWindowMessage::WM_MODELVIEWER:  return p_WmModelViewer(uMsg, wParam, lParam);
         }
 
@@ -262,6 +263,51 @@ namespace ModelViewer
                 break;
             }
         }
+
+        return 0;
+    }
+    LRESULT MainWindow::p_WmKeyDown(UINT uMsg, WPARAM wParam, LPARAM lParam)
+    {
+        constexpr const double step = 3.1415 / 90;
+
+        if (wParam == L'Q')
+        {
+            m_App.rotateModelByX(step);
+        }
+        else if (wParam == L'A')
+        {
+            m_App.rotateModelByX(-step);
+        }
+        else if (wParam == L'W')
+        {
+            m_App.rotateModelByY(step);
+        }
+        else if (wParam == L'S')
+        {
+            m_App.rotateModelByY(-step);
+        }
+        else if (wParam == L'E')
+        {
+            m_App.rotateModelByZ(step);
+        }
+        else if (wParam == L'D')
+        {
+            m_App.rotateModelByZ(-step);
+        }
+        else if (wParam == L'Z')
+        {
+            m_App.zoomIn(0.1);
+        }
+        else if (wParam == L'X')
+        {
+            m_App.zoomOut(0.1);
+        }
+        else
+        {
+            return 0;
+        }
+
+        InvalidateRect(m_HWnd, NULL, FALSE);
 
         return 0;
     }
