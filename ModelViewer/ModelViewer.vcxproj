@@ -40,6 +40,7 @@
   <ItemGroup>
     <ClInclude Include="src\Core.h" />
     <ClInclude Include="src\engine\Pipeline.h" />
+    <ClInclude Include="src\engine\Primitives.h" />
     <ClInclude Include="src\engine\Rasterizer.h" />
     <ClInclude Include="src\engine\ObjectParser.h" />
     <ClInclude Include="src\engine\scene\Camera.h" />

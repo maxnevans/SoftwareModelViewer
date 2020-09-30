@@ -20,7 +20,7 @@ namespace ModelViewer
         using OnLoadCallback = std::function<void(bool)>;
 
     public:
-        ModelViewerApp();
+        ModelViewerApp(int width, int height);
         void start();
         bool stop(DWORD waitMilliseconds = INFINITE);
         bool didStop() const;
@@ -31,6 +31,7 @@ namespace ModelViewer
         void zoomIn(double zoom);
         void zoomOut(double zoom);
         void loadMeshFromFile(const std::wstring& filename, OnLoadCallback cb = nullptr);
+        void setDimensions(int width, int height);
 
     private:
         Vector<double> m_RotateVector = {};

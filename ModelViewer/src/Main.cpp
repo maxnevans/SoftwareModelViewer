@@ -5,10 +5,10 @@
 
 #define EXECEPTION(wStrMsg) MessageBox(NULL, (wStrMsg), L"Critical Error", MB_OK | MB_ICONERROR)
 
-constexpr int WINDOW_WIDTH = 720;
-constexpr int WINDOW_HEIGHT = 720;
-constexpr int WINDOW_START_POS_X = 300;
-constexpr int WINDOW_START_POS_Y = 300;
+constexpr int WINDOW_WIDTH = 1600;
+constexpr int WINDOW_HEIGHT = 900;
+constexpr int WINDOW_START_POS_X = 100;
+constexpr int WINDOW_START_POS_Y = 100;
 
 int WINAPI wWinMain(_In_ HINSTANCE hInstance,
     _In_opt_ HINSTANCE hPrevInstance,

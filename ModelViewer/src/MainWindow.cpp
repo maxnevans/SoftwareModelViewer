@@ -55,7 +55,7 @@ namespace ModelViewer
         :
         m_AnchorPoint({ x, y }),
         m_Dimensions({ width, height }),
-        m_App()
+        m_App(width, height)
     {
         // Adjust window rect to desired client rect
 
@@ -202,6 +202,8 @@ namespace ModelViewer
             windowRect->top,
         };
 
+        m_App.setDimensions(m_Dimensions.width, m_Dimensions.height);
+
         // Redraw
 
         InvalidateRect(m_HWnd, NULL, FALSE);
@@ -269,6 +271,7 @@ namespace ModelViewer
     LRESULT MainWindow::p_WmKeyDown(UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
         constexpr const double step = 3.1415 / 90;
+        constexpr const double zoomStep = 0.05;
 
         if (wParam == L'Q')
         {
@@ -296,11 +299,11 @@ namespace ModelViewer
         }
         else if (wParam == L'Z')
         {
-            m_App.zoomIn(0.1);
+            m_App.zoomIn(zoomStep);
         }
         else if (wParam == L'X')
         {
-            m_App.zoomOut(0.1);
+            m_App.zoomOut(zoomStep);
         }
         else
         {

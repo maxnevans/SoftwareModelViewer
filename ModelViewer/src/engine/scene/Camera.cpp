@@ -10,23 +10,48 @@ namespace ModelViewer
             Camera::Camera(Vector<double> position, Vector<double> target, Vector<double> upVector, double fov, double aspectRatio, double zNear, double zFar)
                 :
                 m_ViewMatrix(createViewMatrix(position, target, upVector)),
-                m_ProjectionMatrix(createProjectionMatrixFromFOVAndAspectRatio(fov, aspectRatio, zNear, zFar))
+                m_ProjectionMatrix(createProjectionMatrixFromFOVAndAspectRatio(fov, aspectRatio, zNear, zFar)),
+                m_position(std::move(position)),
+                m_target(std::move(target)),
+                m_upVector(std::move(upVector)),
+                m_fov(fov),
+                m_aspectRatio(aspectRatio),
+                m_zNear(zNear),
+                m_zFar(zFar)
             {
             }
 
-            const Matrix<double>& Camera::getViewMatrix() const
+            const Matrix<double>& Camera::getViewMatrix()
             {
+                if (m_shouldUpdateViewMatrix)
+                {
+                    m_shouldUpdateViewMatrix = false;
+                    m_ViewMatrix = createViewMatrix(m_position, m_target, m_upVector);
+                }
+
                 return m_ViewMatrix;
             }
 
-            const Matrix<double>& Camera::getProjectionMatrix() const
+            const Matrix<double>& Camera::getProjectionMatrix()
             {
+                if (m_shouldUpdateProjectionMatrix)
+                {
+                    m_shouldUpdateProjectionMatrix = false;
+                    m_ProjectionMatrix = createProjectionMatrixFromFOVAndAspectRatio(m_fov, m_aspectRatio, m_zNear, m_zFar);
+                }
+
                 return m_ProjectionMatrix;
             }
 
             void Camera::changePosition(Vector<double> position, Vector<double> target, Vector<double> upVector)
             {
                 m_ViewMatrix = createViewMatrix(position, target, upVector);
+            }
+
+            void Camera::setAspectRatio(double ratio)
+            {
+                m_shouldUpdateProjectionMatrix = true;
+                m_aspectRatio = ratio;
             }
 
             Matrix<double> Camera::createViewMatrix(const Vector<double>& position, const Vector<double>& target, const Vector<double>& upVector) const

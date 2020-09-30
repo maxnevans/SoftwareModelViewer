@@ -7,12 +7,13 @@
 #include "engine/scene/Object.h"
 #include "engine/scene/Camera.h"
 #include "engine/scene/Scene.h"
+#include "engine/Primitives.h"
 
 #define M_PI 3.14159265358979323846
 
 namespace ModelViewer
 {
-    ModelViewerApp::ModelViewerApp()
+    ModelViewerApp::ModelViewerApp(int width, int height)
         :
         m_RotateVector({0, 0, 0})
     {
@@ -43,10 +44,10 @@ namespace ModelViewer
         m_Scene = std::make_shared<Engine::Scene::Scene>();
 
         m_Camera = std::make_shared<Engine::Scene::Camera>(Vector<double>({ 0.0, 0.0, 3.0 }),
-            Vector<double>({ 0.0, 0.0, 0.0 }), Vector<double>({ 0.0, 1.0, 0.0 }), M_PI / 2, 1.0, 1.0, 10.0);
+            Vector<double>({ 0.0, 0.0, 0.0 }), Vector<double>({ 0.0, 1.0, 0.0 }), M_PI / 2, static_cast<double>(width) / height, 1.0, 10.0);
         m_Scene->addCamera(m_Camera);
 
-        m_Viewport = std::make_shared<Engine::Viewport>(0, 0, 720, 720);
+        m_Viewport = std::make_shared<Engine::Viewport>(0, 0, width, height);
     }
 
     void ModelViewerApp::start()
@@ -63,11 +64,27 @@ namespace ModelViewer
         return true;
     }
 
+    constexpr long long calcKey(int v1i, int v2i)
+    {
+        return static_cast<long long>(v1i) << sizeof(int) | v2i;
+    }
+
     void ModelViewerApp::draw(Gdiplus::Bitmap& frame, const AdditionalDrawData& data)
     {
         Engine::Rasterizer gfx(frame);
 
         auto [ver, ind] = m_Scene->render(*m_Viewport);
+
+        const auto screenWidth = gfx.getWidth();
+        const auto screenHeight = gfx.getHeight();
+
+        auto drawLine = [&gfx, &screenWidth, &screenHeight](const std::vector<Vector<int>>& ver, std::size_t aInd, std::size_t bInd)
+        {
+            std::optional clipped = Engine::Primitives::clipLine(0, 0, screenWidth, screenHeight, std::pair{ ver[aInd], ver[bInd] });
+
+            if (clipped)
+                gfx.drawLine((*clipped).first[0], (*clipped).first[1], (*clipped).second[0], (*clipped).second[1], { 0xFF, 0xFF, 0xFF });
+        };
 
         for (size_t i = 0; i < ind.size(); i += 3)
         {
@@ -77,9 +94,9 @@ namespace ModelViewer
             size_t bInd = ind[i + 1] < 0 ? ver.size() + ind[i + 1] : ind[i + 1] - 1;
             size_t cInd = ind[i + 2] < 0 ? ver.size() + ind[i + 2] : ind[i + 2] - 1;
 
-            gfx.drawLine(ver[aInd][0], ver[aInd][1], ver[bInd][0], ver[bInd][1], {0xFF, 0xFF, 0xFF});
-            gfx.drawLine(ver[bInd][0], ver[bInd][1], ver[cInd][0], ver[cInd][1], { 0xFF, 0xFF, 0xFF });
-            gfx.drawLine(ver[cInd][0], ver[cInd][1], ver[aInd][0], ver[aInd][1], { 0xFF, 0xFF, 0xFF });
+            drawLine(ver, aInd, bInd);
+            drawLine(ver, bInd, cInd);
+            drawLine(ver, cInd, aInd);
         }
     }
 
@@ -134,5 +151,11 @@ namespace ModelViewer
 
         if (cb)
             cb(true);
+    }
+
+    void ModelViewerApp::setDimensions(int width, int height)
+    {
+        m_Camera->setAspectRatio(static_cast<double>(width) / height);
+        m_Viewport->setDimensions(width, height);
     }
 }

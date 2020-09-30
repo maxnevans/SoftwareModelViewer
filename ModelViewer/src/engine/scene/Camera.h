@@ -13,9 +13,10 @@ namespace ModelViewer
             {
             public:
                 Camera(Vector<double> position, Vector<double> target, Vector<double> upVector, double fov, double aspectRatio, double zNear, double zFar);
-                const Matrix<double>& getViewMatrix() const;
-                const Matrix<double>& getProjectionMatrix() const;
+                const Matrix<double>& getViewMatrix();
+                const Matrix<double>& getProjectionMatrix();
                 void changePosition(Vector<double> position, Vector<double> target, Vector<double> upVector);
+                void setAspectRatio(double ratio);
 
             private:
                 Matrix<double> createViewMatrix(const Vector<double>& position, const Vector<double>& target, const Vector<double>& upVector) const;
@@ -25,6 +26,15 @@ namespace ModelViewer
             private:
                 Matrix<double> m_ViewMatrix;
                 Matrix<double> m_ProjectionMatrix;
+                Vector<double> m_position;
+                Vector<double> m_target;
+                Vector<double> m_upVector;
+                bool m_shouldUpdateViewMatrix = false;
+                bool m_shouldUpdateProjectionMatrix = false;
+                double m_fov;
+                double m_aspectRatio;
+                double m_zNear;
+                double m_zFar;
             };
         }
     }

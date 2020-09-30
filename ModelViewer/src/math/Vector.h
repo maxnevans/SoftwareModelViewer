@@ -12,6 +12,11 @@ namespace ModelViewer
     public:
         Vector() = default;
 
+        Vector(std::initializer_list<T> l)
+            :
+            Matrix<T>(l, 1, l.size())
+        {}
+
         Vector(Matrix<T> matrix)
             :
             Matrix<T>(std::move(matrix))
@@ -21,12 +26,16 @@ namespace ModelViewer
 
         Vector(std::valarray<T> data, bool rowOriented = false)
             :
-            Matrix<T>(std::move(data), 1, data.size())
+            Matrix<T>(std::move(data), 1, 1)
         {
             if (rowOriented)
             {
-                this->m_NumberRows = this->m_NumberColumns;
+                this->m_NumberRows = this->m_Data.size();
                 this->m_NumberColumns = 1;
+            }
+            else
+            {
+                this->m_NumberColumns = this->m_Data.size();
             }
         }
 

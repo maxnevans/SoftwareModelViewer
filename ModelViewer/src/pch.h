@@ -10,6 +10,10 @@
 #include <valarray>
 #include <fstream>
 #include <array>
+#include <initializer_list>
+#include <utility>
+#include <optional>
+#include <unordered_set>
 
 // Windows Header Files
 #include <windows.h>
