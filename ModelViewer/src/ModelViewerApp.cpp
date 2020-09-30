@@ -74,13 +74,15 @@ namespace ModelViewer
         Engine::Rasterizer gfx(frame);
 
         auto [ver, ind] = m_Scene->render(*m_Viewport);
+        /*std::vector<std::future<void>> futures;
+        futures.reserve(ind.size() / 3);*/
 
         const auto screenWidth = gfx.getWidth();
         const auto screenHeight = gfx.getHeight();
 
-        auto drawLine = [&gfx, &screenWidth, &screenHeight](const std::vector<Vector<int>>& ver, std::size_t aInd, std::size_t bInd)
+        auto drawLine = [&gfx, &screenWidth, &screenHeight](std::reference_wrapper<std::vector<Vector<int>>> ver, std::size_t aInd, std::size_t bInd)
         {
-            std::optional clipped = Engine::Primitives::clipLine(0, 0, screenWidth, screenHeight, std::pair{ ver[aInd], ver[bInd] });
+            std::optional clipped = Engine::Primitives::clipLine(0, 0, screenWidth, screenHeight, std::pair{ ver.get()[aInd], ver.get()[bInd] });
 
             if (clipped)
                 gfx.drawLine((*clipped).first[0], (*clipped).first[1], (*clipped).second[0], (*clipped).second[1], { 0xFF, 0xFF, 0xFF });
@@ -97,6 +99,10 @@ namespace ModelViewer
             drawLine(ver, aInd, bInd);
             drawLine(ver, bInd, cInd);
             drawLine(ver, cInd, aInd);
+
+            /*futures.push_back(std::async(std::launch::async, drawLine, std::ref(ver), aInd, bInd));
+            futures.push_back(std::async(std::launch::async, drawLine, std::ref(ver), bInd, cInd));
+            futures.push_back(std::async(std::launch::async, drawLine, std::ref(ver), cInd, aInd));*/
         }
     }
 

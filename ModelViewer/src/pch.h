@@ -14,6 +14,7 @@
 #include <utility>
 #include <optional>
 #include <unordered_set>
+#include <future>
 
 // Windows Header Files
 #include <windows.h>
