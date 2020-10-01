@@ -22,14 +22,17 @@ namespace ModelViewer
                 expect(object);
 
                 m_Objects.push_back(object);
+
+                m_vertices.reserve(object->getVertices().size());
+                m_indices.reserve(object->getIndices().size());
             }
 
-            std::pair<std::vector<Vector<int>>, std::vector<int>> Scene::render(Viewport& vp)
+            std::pair<std::reference_wrapper<const std::vector<Vector<int>>>, std::reference_wrapper<const std::vector<int>>> Scene::render(Viewport& vp)
             {
                 expect(m_CurrentActiveCamera);
 
-                std::vector<Vector<int>> vertices;
-                std::vector<int> indices;
+                m_vertices.clear();
+                m_indices.clear();
 
                 for (const auto& object : m_Objects)
                 {
@@ -45,13 +48,13 @@ namespace ModelViewer
                         auto r4 = r3 / r3[3]; // Divide by w coordinate
                         auto r5 = vp.getMatrix() * r4;
 
-                        vertices.push_back(r5.staticCast<int>());
+                        m_vertices.push_back(r5.staticCast<int>());
                     } 
 
-                    indices.insert(indices.end(), objIndices.begin(), objIndices.end());
+                    m_indices.insert(m_indices.end(), objIndices.begin(), objIndices.end());
                 }
 
-                return {vertices, indices};
+                return {std::cref(m_vertices), std::cref(m_indices)};
             }
         }
     }

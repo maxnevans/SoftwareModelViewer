@@ -17,30 +17,6 @@ namespace ModelViewer
         :
         m_RotateVector({0, 0, 0})
     {
-        /*std::vector<double> verticesRaw = {
-            -0.5,   -0.5,  -0.5,   1,
-             0.5,   -0.5,  -0.5,   1,
-             0.5,    0.5,  -0.5,   1,
-            -0.5,    0.5,  -0.5,   1,
-            -0.5,   -0.5,   0.5,   1,
-             0.5,   -0.5,   0.5,   1,
-             0.5,    0.5,   0.5,   1,
-            -0.5,    0.5,   0.5,   1
-        };*/
-
-        //std::vector<int> indices = {
-            //1, 2, 2, 3, 3, 4, 4, 1, 1, 5, 2, 6, 5, 6, 5, 8, 8, 7, 6, 7, 5, 6
-        //    0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7
-        //};
-
-        //std::vector<Vector<double>> vertices;
-        //for (size_t i = 0; i < verticesRaw.size() / 4; i++)
-        //    vertices.emplace_back(std::valarray<double>{ verticesRaw[4 * i], verticesRaw[4 * i + 1], verticesRaw[4 * i + 2], verticesRaw[4 * i + 3]});
-
-        //m_Model = std::make_shared<Engine::Scene::Object>(vertices, indices);
-        //m_Model->translate(Vector<double>({0, 0, 0}));
-        //m_Model->scale(Vector<double>({2, 2, 2}));
-
         m_Scene = std::make_shared<Engine::Scene::Scene>();
 
         m_Camera = std::make_shared<Engine::Scene::Camera>(Vector<double>({ 0.0, 0.0, 3.0 }),
@@ -73,14 +49,16 @@ namespace ModelViewer
     {
         Engine::Rasterizer gfx(frame);
 
-        auto [ver, ind] = m_Scene->render(*m_Viewport);
+        auto&& [verRef, indRef] = m_Scene->render(*m_Viewport);
+        const auto& ver = verRef.get();
+        const auto& ind = indRef.get();
         /*std::vector<std::future<void>> futures;
         futures.reserve(ind.size() / 3);*/
 
         const auto screenWidth = gfx.getWidth();
         const auto screenHeight = gfx.getHeight();
 
-        auto drawLine = [&gfx, &screenWidth, &screenHeight](std::reference_wrapper<std::vector<Vector<int>>> ver, std::size_t aInd, std::size_t bInd)
+        auto drawLine = [&gfx, &screenWidth, &screenHeight](std::reference_wrapper<const std::vector<Vector<int>>> ver, std::size_t aInd, std::size_t bInd)
         {
             std::optional clipped = Engine::Primitives::clipLine(0, 0, screenWidth, screenHeight, std::pair{ ver.get()[aInd], ver.get()[bInd] });
 
@@ -96,9 +74,9 @@ namespace ModelViewer
             size_t bInd = ind[i + 1] < 0 ? ver.size() + ind[i + 1] : ind[i + 1] - 1;
             size_t cInd = ind[i + 2] < 0 ? ver.size() + ind[i + 2] : ind[i + 2] - 1;
 
-            drawLine(ver, aInd, bInd);
-            drawLine(ver, bInd, cInd);
-            drawLine(ver, cInd, aInd);
+            drawLine(verRef, aInd, bInd);
+            drawLine(verRef, bInd, cInd);
+            drawLine(verRef, cInd, aInd);
 
             /*futures.push_back(std::async(std::launch::async, drawLine, std::ref(ver), aInd, bInd));
             futures.push_back(std::async(std::launch::async, drawLine, std::ref(ver), bInd, cInd));
