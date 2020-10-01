@@ -34,21 +34,22 @@ namespace ModelViewer
                 m_vertices.clear();
                 m_indices.clear();
 
+                const auto vpv = vp.getMatrix() 
+                    * m_CurrentActiveCamera->getProjectionMatrix() 
+                    * m_CurrentActiveCamera->getViewMatrix();
+
                 for (const auto& object : m_Objects)
                 {
-                    //auto mvpv = vpv * object->getMatrix();
                     const auto& objVertices = object->getVertices();
                     const auto& objIndices = object->getIndices();
 
+                    const auto vpvm = vpv * object->getMatrix();
+
                     for (auto vertex : objVertices)
                     {
-                        auto r1 = object->getMatrix() * vertex.rotateToColumn();
-                        auto r2 = m_CurrentActiveCamera->getViewMatrix() * r1;
-                        auto r3 = m_CurrentActiveCamera->getProjectionMatrix() * r2;
-                        auto r4 = r3 / r3[3]; // Divide by w coordinate
-                        auto r5 = vp.getMatrix() * r4;
-
-                        m_vertices.push_back(r5.staticCast<int>());
+                        auto transformedVertex = vpvm * vertex.rotateToColumn();
+                        transformedVertex /= transformedVertex[3];
+                        m_vertices.push_back(transformedVertex.staticCast<int>());
                     } 
 
                     m_indices.insert(m_indices.end(), objIndices.begin(), objIndices.end());
