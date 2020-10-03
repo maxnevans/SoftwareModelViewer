@@ -2,7 +2,6 @@
 #include "pch.h"
 #include "ModelViewerApp.h"
 #include "engine/ObjectParser.h"
-#include "engine/Rasterizer.h"
 #include "engine/Viewport.h"
 #include "engine/scene/Object.h"
 #include "engine/scene/Camera.h"
@@ -15,7 +14,8 @@ namespace ModelViewer
 {
     ModelViewerApp::ModelViewerApp(int width, int height)
         :
-        m_RotateVector({0, 0, 0})
+        m_RotateVector({0, 0, 0}),
+        m_rasterizer(width, height)
     {
         m_Scene = std::make_shared<Engine::Scene::Scene>();
 
@@ -42,29 +42,42 @@ namespace ModelViewer
 
     constexpr long long calcKey(int v1i, int v2i)
     {
-        return static_cast<long long>(v1i) << sizeof(int) | v2i;
+        if (v1i > v2i)
+            std::swap(v1i, v2i);
+
+        return static_cast<long long>(v1i) << (sizeof(int) * 8) | v2i;
     }
 
-    void ModelViewerApp::draw(Gdiplus::Bitmap& frame, const AdditionalDrawData& data)
+    void ModelViewerApp::draw(Gdiplus::Graphics& gfx, const AdditionalDrawData& data)
     {
-        Engine::Rasterizer gfx(frame);
-
         auto&& [verRef, indRef] = m_Scene->render(*m_Viewport);
         const auto& ver = verRef.get();
         const auto& ind = indRef.get();
-        /*std::vector<std::future<void>> futures;
-        futures.reserve(ind.size() / 3);*/
 
-        const auto screenWidth = gfx.getWidth();
-        const auto screenHeight = gfx.getHeight();
+        const auto screenWidth = data.dimensions.width;
+        const auto screenHeight = data.dimensions.height;
 
-        auto drawLine = [&gfx, &screenWidth, &screenHeight](std::reference_wrapper<const std::vector<Vector<int>>> ver, std::size_t aInd, std::size_t bInd)
+        auto drawLine = [this, &screenWidth, &screenHeight](std::reference_wrapper<const std::vector<Vector<int>>> ver, std::size_t aInd, std::size_t bInd)
         {
+            {
+
+                const auto key = calcKey(aInd, bInd);
+
+                std::lock_guard l(m_drawnLinesMutex);
+
+                if (const auto iter = m_drawnLines.find(key); iter != m_drawnLines.end())
+                    return;
+
+                m_drawnLines.insert(key);
+            }
+
             std::optional clipped = Engine::Primitives::clipLine(0, 0, screenWidth, screenHeight, std::pair{ ver.get()[aInd], ver.get()[bInd] });
 
             if (clipped)
-                gfx.drawLine((*clipped).first[0], (*clipped).first[1], (*clipped).second[0], (*clipped).second[1], { 0xFF, 0xFF, 0xFF });
+                m_rasterizer.drawLine((*clipped).first[0], (*clipped).first[1], (*clipped).second[0], (*clipped).second[1], { 0xFF, 0xFF, 0xFF });
         };
+
+        m_rasterizer.begin();
 
         for (size_t i = 0; i < ind.size(); i += 3)
         {
@@ -74,14 +87,21 @@ namespace ModelViewer
             size_t bInd = ind[i + 1] < 0 ? ver.size() + ind[i + 1] : ind[i + 1] - 1;
             size_t cInd = ind[i + 2] < 0 ? ver.size() + ind[i + 2] : ind[i + 2] - 1;
 
-            drawLine(verRef, aInd, bInd);
+            /*drawLine(verRef, aInd, bInd);
             drawLine(verRef, bInd, cInd);
-            drawLine(verRef, cInd, aInd);
+            drawLine(verRef, cInd, aInd);*/
 
-            /*futures.push_back(std::async(std::launch::async, drawLine, std::ref(ver), aInd, bInd));
-            futures.push_back(std::async(std::launch::async, drawLine, std::ref(ver), bInd, cInd));
-            futures.push_back(std::async(std::launch::async, drawLine, std::ref(ver), cInd, aInd));*/
+            m_futures[i] = std::async(std::launch::async, drawLine, std::ref(ver), aInd, bInd);
+            m_futures[i + 1] = std::async(std::launch::async, drawLine, std::ref(ver), bInd, cInd);
+            m_futures[i + 2] = std::async(std::launch::async, drawLine, std::ref(ver), cInd, aInd);
         }
+
+        for (auto& future : m_futures)
+            future->wait();
+
+        m_drawnLines.clear();
+
+        m_rasterizer.end(gfx);
     }
 
     void ModelViewerApp::rotateModelByX(double x)
@@ -131,6 +151,7 @@ namespace ModelViewer
 
         auto object = parser.parse();
         m_Model = std::make_shared<Engine::Scene::Object>(std::move(object.vertices), std::move(object.indices));
+        m_futures.resize(m_Model->getIndices().size());
         m_Scene->addObject(m_Model);
 
         if (cb)

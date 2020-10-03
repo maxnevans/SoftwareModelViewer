@@ -170,9 +170,7 @@ namespace ModelViewer
         SelectObject(memDc, hBm);
 
         Gdiplus::Graphics gfx(memDc);
-        Gdiplus::Bitmap frame(m_Dimensions.width, m_Dimensions.height, &gfx);
-        m_App.draw(frame, { m_Dimensions });
-        gfx.DrawImage(&frame, 0, 0, m_Dimensions.width, m_Dimensions.height);
+        m_App.draw(gfx, { m_Dimensions });
 
         BitBlt(hdc, 0, 0, m_Dimensions.width, m_Dimensions.height, memDc, 0, 0, SRCCOPY);
 

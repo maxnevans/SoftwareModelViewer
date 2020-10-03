@@ -15,20 +15,26 @@ namespace ModelViewer
         class Rasterizer
         {
         public:
-            Rasterizer(Gdiplus::Bitmap& frame);
+            Rasterizer(int width, int height);
+            void begin();
+            void end(Gdiplus::Graphics& gfx);
             void drawPixel(int x, int y, Color color);
             void drawLine(int x1, int y1, int x2, int y2, Color color);
             inline UINT getWidth() const
             {
-                return m_Frame.GetWidth();
+                return m_width;
             }
             inline UINT getHeight() const
             {
-                return m_Frame.GetHeight();
+                return m_height;
             }
 
         private:
-            Gdiplus::Bitmap& m_Frame;
+            static constexpr int STRIDE = 4;
+
+            int m_width;
+            int m_height;
+            std::vector<unsigned> m_data;
         };
     }
 }

@@ -6,6 +6,7 @@
 #include "engine/scene/Scene.h"
 #include "engine/scene/Object.h"
 #include "engine/scene/Camera.h"
+#include "engine/Rasterizer.h"
 
 namespace ModelViewer
 {
@@ -24,7 +25,7 @@ namespace ModelViewer
         void start();
         bool stop(DWORD waitMilliseconds = INFINITE);
         bool didStop() const;
-        void draw(Gdiplus::Bitmap& frame, const AdditionalDrawData& data);
+        void draw(Gdiplus::Graphics& gfx, const AdditionalDrawData& data);
         void rotateModelByX(double x);
         void rotateModelByY(double y);
         void rotateModelByZ(double z);
@@ -42,5 +43,9 @@ namespace ModelViewer
         std::shared_ptr<Engine::Viewport> m_Viewport = nullptr;
         std::shared_ptr<Engine::Scene::Camera> m_Camera = nullptr;
         std::shared_ptr<Engine::ParsedObject> m_ParsedObject = nullptr;
+        Engine::Rasterizer m_rasterizer;
+        std::vector<std::optional<std::future<void>>> m_futures;
+        std::unordered_set<long long> m_drawnLines;
+        std::mutex m_drawnLinesMutex;
     };
 }
