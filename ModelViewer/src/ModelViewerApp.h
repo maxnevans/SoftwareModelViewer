@@ -1,5 +1,6 @@
 #pragma once
 #include "pch.h"
+#include "ThreadPool.h"
 #include "engine/ObjectParser.h"
 #include "math/Geometry.h"
 #include "math/Vector.h"
@@ -35,7 +36,7 @@ namespace ModelViewer
         void setDimensions(int width, int height);
 
     private:
-        Vector<double> m_RotateVector = {};
+        Vector4<double> m_RotateVector = {};
         double m_Zoom = 3.0;
         OnLoadCallback m_OnLoadCb = nullptr;
         std::shared_ptr<Engine::Scene::Object> m_Model = nullptr;
@@ -45,7 +46,7 @@ namespace ModelViewer
         std::shared_ptr<Engine::ParsedObject> m_ParsedObject = nullptr;
         Engine::Rasterizer m_rasterizer;
         std::vector<std::optional<std::future<void>>> m_futures;
-        std::unordered_set<long long> m_drawnLines;
         std::mutex m_drawnLinesMutex;
+        ThreadPool m_pool;
     };
 }

@@ -28,9 +28,9 @@ namespace ModelViewer
         void Rasterizer::drawPixel(int x, int y, Color color)
         {
             expect(x >= 0);
-            expect((UINT)x < m_width);
+            expect(x < m_width);
             expect(y >= 0);
-            expect((UINT)y < m_height);
+            expect(y < m_height);
 
             m_data[y * m_width + x] = color.r << 16 | color.g << 8 | color.b;
         }
@@ -38,13 +38,13 @@ namespace ModelViewer
         void Rasterizer::drawLine(int x1, int y1, int x2, int y2, Color color)
         {
             expect(x1 >= 0);
-            expect((UINT)x1 < m_width);
+            expect(x1 < m_width);
             expect(y1 >= 0);
-            expect((UINT)y1 < m_height);
+            expect(y1 < m_height);
             expect(x2 >= 0);
-            expect((UINT)x2 < m_width);
+            expect(x2 < m_width);
             expect(y2 >= 0);
-            expect((UINT)y2 < m_height);
+            expect(y2 < m_height);
 
             // DDA-line algorithm
 

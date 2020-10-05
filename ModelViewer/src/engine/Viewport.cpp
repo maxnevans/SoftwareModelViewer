@@ -15,7 +15,7 @@ namespace ModelViewer
         {
         }
 
-        const Matrix<double>& Viewport::getMatrix()
+        const Matrix4<double>& Viewport::getMatrix()
         {
             if (m_shouldUpdateCache)
             {
@@ -26,17 +26,17 @@ namespace ModelViewer
             return m_ViewportMatrix;
         }
 
-        Matrix<double> Viewport::createViewportMatrix(int x, int y, int width, int height) const
+        Matrix4<double> Viewport::createViewportMatrix(int x, int y, int width, int height) const
         {
             double halfWidth = width / 2.0;
             double halfHeight = height / 2.0;
 
-            return Matrix<double>({
+            return Matrix4<double>({
                 halfWidth,      0,              0,      x + halfWidth,
                 0,              -halfHeight,    0,      y + halfHeight,
                 0,              0,              1,      0,
                 0,              0,              0,      1
-            }, 4, 4);
+            });
         }
 
         void Viewport::setDimensions(int width, int height)

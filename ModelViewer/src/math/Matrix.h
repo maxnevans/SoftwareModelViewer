@@ -4,73 +4,74 @@
 
 namespace ModelViewer
 {
-    template<typename T>
+    template<typename T, std::size_t Size>
     class Matrix
     {
     public:   
         Matrix() = default;
 
-        Matrix(std::valarray<T> data, size_t numberRows, size_t numberColumns)
+        Matrix(std::array<T, Size * Size> data)
             :
-            m_Data(std::move(data)),
-            m_NumberRows(numberRows),
-            m_NumberColumns(numberColumns)
+            m_data(std::move(data))
+        {}
+
+        inline T& operator()(int m, int n)
         {
+            expect(m >= 0 && m < Size);
+            expect(n >= 0 && n < Size);
+
+            return m_data[n * Size + m];
         }
 
-        size_t getNumberRows() const
+        inline const T& operator()(int m, int n) const
         {
-            return m_NumberRows;
-        }
+            expect(m >= 0 && m < Size);
+            expect(n >= 0 && n < Size);
 
-        size_t getNumberColumns() const
-        {
-            return m_NumberColumns;
+            return m_data[n * Size + m];
         }
 
         Matrix operator*(const Matrix& matrix) const
         {
-            expect(m_NumberColumns == matrix.m_NumberRows);
+            std::array<T, Size * Size> out = {};
 
-            if (m_NumberRows == 0 || matrix.m_NumberRows == 0 || matrix.m_NumberColumns == 0)
-                return Matrix{};
-
-            std::valarray<T> out(m_NumberRows * matrix.m_NumberColumns);
-
-            for (size_t row = 0; row < m_NumberRows; row++)
+            for (std::size_t i = 0; i < Size * Size; i += Size)
             {
-                for (size_t col = 0; col < matrix.m_NumberColumns; col++)
+                const auto c = &out[i];
+                const auto a = &m_data[i];
+                for (std::size_t k = 0; k < Size; k++)
                 {
-                    out[row * matrix.m_NumberColumns + col] = (m_Data[std::slice(row * m_NumberColumns, m_NumberColumns, 1)]
-                        * matrix.m_Data[std::slice(col, matrix.m_NumberRows, matrix.m_NumberColumns)]).sum();
+                    const auto aVal = *(a + k);
+                    const auto b = &matrix.m_data[k * Size];
+                    for (std::size_t j = 0; j < Size; j++)
+                        *(c + j) += aVal * *(b + j);
                 }
             }
 
-            return Matrix(std::move(out), m_NumberRows, matrix.m_NumberColumns);
+            return out;
         }
 
         Matrix& operator*=(const Matrix& matrix)
         {
-            if (m_NumberColumns == 0 || m_NumberRows == 0)
-                return *this;
-
             *this = *this * matrix;
+            return *this;
+        }
+
+        Matrix& operator*=(T number)
+        {
+            for (std::size_t i = 0; i < Size; i++)
+                for (std::size_t j = 0; j < Size; j++)
+                    (*this)(i, j) *= number;
+
             return *this;
         }
 
         Matrix operator*(T number) const
         {
+            auto clone = *this;
+            clone *= number;
 
-            return Matrix(m_Data * number, m_NumberRows, m_NumberColumns);
-        }
-
-        Matrix& operator*=(T number)
-        {
-            if (m_Data.size() == 0)
-                return *this;
-
-            m_Data *= number;
-            return *this;
+            return clone;
         }
 
         Matrix operator/(T number) const
@@ -85,33 +86,38 @@ namespace ModelViewer
 
         Matrix operator+(const Matrix& matrix) const
         {
-            expect(m_NumberRows == matrix.m_NumberRows && m_NumberColumns == matrix.m_NumberColumns);
-            return Matrix(m_Data + matrix.m_Data, m_NumberRows, m_NumberColumns);
+            auto out = *this;
+
+            for (std::size_t i = 0; i < Size; i++)
+                for (std::size_t j = 0; j < Size; j++)
+                    out(i, j) += matrix(i, j);
+
+            return out;
         }
 
         Matrix& operator+=(const Matrix& matrix)
         {
-            expect(m_NumberRows == matrix.m_NumberRows && m_NumberColumns == matrix.m_NumberColumns);
-            m_Data += matrix.m_Data;
+            for (std::size_t i = 0; i < Size; i++)
+                for (std::size_t j = 0; j < Size; j++)
+                    (*this)(i, j) += matrix(i, j);
+
             return *this;
         }
 
         Matrix operator+(T number) const
         {
-            if (m_NumberColumns == 0 || m_NumberRows == 0)
-                return Matrix{};
+            auto clone = *this;
+            clone += number;
 
-            std::valarray<T> newData = m_Data + number;
-
-            return Matrix<T>(std::move(newData), m_NumberRows, m_NumberColumns);
+            return clone;
         }
 
         Matrix& operator+=(T number)
         {
-            if (m_NumberColumns == 0 || m_NumberRows == 0)
-                return *this;
+            for (std::size_t i = 0; i < Size; i++)
+                for (std::size_t j = 0; j < Size; j++)
+                    (*this)(i, j) += number;
 
-            m_Data += number;
             return *this;
         }
 
@@ -125,29 +131,20 @@ namespace ModelViewer
             return *this += -number;
         }
 
-        inline T& at(size_t row, size_t column)
-        {
-            if (row >= m_NumberRows)
-                throw std::out_of_range("matrix row index out of range");
-
-            if (column >= m_NumberColumns)
-                throw std::out_of_range("matrix column index out of range");
-
-            return m_Data[row * m_NumberColumns + column];
-        }
-
         template<typename E>
-        Matrix<E> staticCast() const
+        operator Matrix<E, Size>() const
         {
-            std::valarray<E> arr(this->m_Data.size());
-            std::copy(std::begin(this->m_Data), std::end(this->m_Data), std::begin(arr));
-            return Matrix<E>(std::move(arr), this->m_NumberRows, this->m_NumberColumns);
+            std::array<E, Size * Size> copy;
+            for (int i = 0; i < Size * Size; i++)
+                copy[i] = static_cast<E>(m_data[i]);
+
+            return Matrix<E, Size>(std::move(copy));
         }
 
-    protected:
-        size_t m_NumberColumns = 0;
-        size_t m_NumberRows = 0;
-
-        std::valarray<T> m_Data = {};
+    private:
+        std::array<T, Size * Size> m_data = {};
     };
+
+    template<typename T>
+    using Matrix4 = Matrix<T, 4>;
 }

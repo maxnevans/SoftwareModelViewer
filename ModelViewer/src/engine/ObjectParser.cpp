@@ -22,7 +22,7 @@ namespace ModelViewer
             {
                 if (std::wstring_view(line.c_str(), 2) == L"v ")
                 {
-                    obj.vertices.push_back(Vector<double>(std::move(parseV(line))));
+                    obj.vertices.push_back(Vector4<double>(std::move(parseV(line))));
                 }
 
                 if (std::wstring_view(line.c_str(), 2) == L"f ")
@@ -81,14 +81,13 @@ namespace ModelViewer
             return f;
         }
 
-        std::valarray<double> ObjectParser::parseV(const std::wstring& str)
+        Vector4<double> ObjectParser::parseV(const std::wstring& str)
         {
-            constexpr const size_t MAX_VERTEX_COORDS = 4;
             size_t offset = 2;
-            std::array<double, MAX_VERTEX_COORDS> vertices = {0, 0, 0, 1};
+            Vector4<double> vertices({0.0, 0.0, 0.0, 1.0});
             size_t countVertices = 0;
 
-            for (size_t i = 0; i < MAX_VERTEX_COORDS - 1; i++)
+            for (int i = 0; i < 3; i++)
             {
                 auto pos = str.find(L' ', offset);
 
@@ -103,12 +102,7 @@ namespace ModelViewer
 
             vertices[countVertices] = std::stod(str.substr(offset));
 
-            std::valarray<double> data(vertices.size());
-
-            for (size_t i = 0; i < vertices.size(); i++)
-                data[i] = vertices[i];
-
-            return data;
+            return vertices;
         }
     }
 }

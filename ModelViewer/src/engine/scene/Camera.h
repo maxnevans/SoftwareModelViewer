@@ -12,23 +12,23 @@ namespace ModelViewer
             class Camera
             {
             public:
-                Camera(Vector<double> position, Vector<double> target, Vector<double> upVector, double fov, double aspectRatio, double zNear, double zFar);
-                const Matrix<double>& getViewMatrix();
-                const Matrix<double>& getProjectionMatrix();
-                void changePosition(Vector<double> position, Vector<double> target, Vector<double> upVector);
+                Camera(Vector3<double> position, Vector3<double> target, Vector3<double> upVector, double fov, double aspectRatio, double zNear, double zFar);
+                const Matrix4<double>& getViewMatrix();
+                const Matrix4<double>& getProjectionMatrix();
+                void changePosition(Vector3<double> position, Vector3<double> target, Vector3<double> upVector);
                 void setAspectRatio(double ratio);
 
             private:
-                Matrix<double> createViewMatrix(const Vector<double>& position, const Vector<double>& target, const Vector<double>& upVector) const;
-                Matrix<double> createProjectionMatrixFromWidthAndHeight(double width, double height, double zNear, double zFar) const;
-                Matrix<double> createProjectionMatrixFromFOVAndAspectRatio(double fov, double aspectRatio, double zNear, double zFar) const;
+                Matrix4<double> createViewMatrix(const Vector3<double>& position, const Vector3<double>& target, const Vector3<double>& upVector) const;
+                Matrix4<double> createProjectionMatrixFromWidthAndHeight(double width, double height, double zNear, double zFar) const;
+                Matrix4<double> createProjectionMatrixFromFOVAndAspectRatio(double fov, double aspectRatio, double zNear, double zFar) const;
 
             private:
-                Matrix<double> m_ViewMatrix;
-                Matrix<double> m_ProjectionMatrix;
-                Vector<double> m_position;
-                Vector<double> m_target;
-                Vector<double> m_upVector;
+                Matrix4<double> m_ViewMatrix;
+                Matrix4<double> m_ProjectionMatrix;
+                Vector3<double> m_position;
+                Vector3<double> m_target;
+                Vector3<double> m_upVector;
                 bool m_shouldUpdateViewMatrix = false;
                 bool m_shouldUpdateProjectionMatrix = false;
                 double m_fov;

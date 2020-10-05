@@ -27,7 +27,7 @@ namespace ModelViewer
                 m_indices.reserve(object->getIndices().size());
             }
 
-            std::pair<std::reference_wrapper<const std::vector<Vector<int>>>, std::reference_wrapper<const std::vector<int>>> Scene::render(Viewport& vp)
+            std::pair<std::reference_wrapper<const std::vector<Vector4<int>>>, std::reference_wrapper<const std::vector<int>>> Scene::render(Viewport& vp)
             {
                 expect(m_CurrentActiveCamera);
 
@@ -45,11 +45,11 @@ namespace ModelViewer
 
                     const auto vpvm = vpv * object->getMatrix();
 
-                    for (auto vertex : objVertices)
+                    for (auto&& vertex : objVertices)
                     {
-                        auto transformedVertex = vpvm * vertex.rotateToColumn();
+                        auto transformedVertex = vpvm * vertex;
                         transformedVertex /= transformedVertex[3];
-                        m_vertices.push_back(transformedVertex.staticCast<int>());
+                        m_vertices.push_back(static_cast<Vector4<int>>(transformedVertex));
                     } 
 
                     m_indices.insert(m_indices.end(), objIndices.begin(), objIndices.end());

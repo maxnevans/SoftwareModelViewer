@@ -8,7 +8,7 @@ namespace ModelViewer
     {
         struct ParsedObject
         {
-            std::vector<Vector<double>> vertices;
+            std::vector<Vector4<double>> vertices;
             std::vector<int> indices;
         };
 
@@ -21,7 +21,7 @@ namespace ModelViewer
         private:
             std::array<int, 3> parseFSingle(const std::wstring& str) const;
             std::vector<std::array<int, 3>> parseF(const std::wstring& str) const;
-            std::valarray<double> parseV(const std::wstring& str);
+            Vector4<double> parseV(const std::wstring& str);
             
         private:
             std::wstring m_ObjFile;

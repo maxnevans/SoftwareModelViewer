@@ -5,7 +5,7 @@
 namespace ModelViewer::Engine::Primitives
 {
     template<typename T, std::size_t CountVertices>
-    using GenericPrimitive = std::array<std::reference_wrapper<Vector<T>>, CountVertices>;
+    using GenericPrimitive = std::array<std::reference_wrapper<Vector4<T>>, CountVertices>;
 
     constexpr std::size_t LINE_VERTICES_COUNT = 2;
     template<typename T>
@@ -30,7 +30,7 @@ namespace ModelViewer::Engine::Primitives
         return flags;
     }
 
-    std::optional<std::pair<Vector<int>, Vector<int>>> clipLine(const int x, const  int y, const int width, const int height, const std::pair<Vector<int>, Vector<int>>& line)
+    std::optional<std::pair<Vector4<int>, Vector4<int>>> clipLine(const int x, const  int y, const int width, const int height, const std::pair<Vector4<int>, Vector4<int>>& line)
     {
         const int xWidth = x + width;
         const int yHeight = y + height;
@@ -38,8 +38,8 @@ namespace ModelViewer::Engine::Primitives
         constexpr int X = 0;
         constexpr int Y = 1;
 
-        auto v1 = line.first.staticCast<double>();
-        auto v2 = line.second.staticCast<double>();
+        auto v1 = static_cast<Vector4<double>>(line.first);
+        auto v2 = static_cast<Vector4<double>>(line.second);
 
         unsigned char flags[2] = {
             calcPointRegionCode(x, y, xWidth, yHeight, v1[X], v1[Y]),
@@ -56,7 +56,7 @@ namespace ModelViewer::Engine::Primitives
             if (!(flags[0] | flags[1]))
             {
                 // bitwise OR is 0: both points inside window; trivially accept and exit loop
-                return std::pair{ std::move(v1.staticCast<int>()), std::move(v2.staticCast<int>()) };
+                return std::pair{ std::move(static_cast<Vector4<int>>(v1)), std::move(static_cast<Vector4<int>>(v2)) };
             }
             else if (flags[0] & flags[1])
             {

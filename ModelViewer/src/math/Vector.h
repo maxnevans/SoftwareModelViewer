@@ -4,134 +4,83 @@
 
 namespace ModelViewer
 {
-    template<typename T>
+    template<typename T, std::size_t Size>
     class Vector
-        :
-        public Matrix<T>
     {
     public:
         Vector() = default;
 
-        Vector(std::initializer_list<T> l)
+        Vector(std::array<T, Size> data)
             :
-            Matrix<T>(l, 1, l.size())
+            m_data(std::move(data))
         {}
 
-        Vector(Matrix<T> matrix)
-            :
-            Matrix<T>(std::move(matrix))
+        Vector<double, Size> normalize() const
         {
-            expect(this->m_NumberRows == 1 || this->m_NumberColumns == 1);
-        }
+            const double len = length();
 
-        Vector(std::valarray<T> data, bool rowOriented = false)
-            :
-            Matrix<T>(std::move(data), 1, 1)
-        {
-            if (rowOriented)
-            {
-                this->m_NumberRows = this->m_Data.size();
-                this->m_NumberColumns = 1;
-            }
-            else
-            {
-                this->m_NumberColumns = this->m_Data.size();
-            }
-        }
-
-        Vector& rotateToColumn()
-        {
-            this->m_NumberRows = this->m_Data.size();
-            this->m_NumberColumns = 1;
-            return *this;
-        }
-
-        Vector& rotateToRow()
-        {
-            this->m_NumberRows = 1;
-            this->m_NumberColumns = this->m_Data.size();
-            return *this;
-        }
-
-        Vector<double> normalize() const
-        {
-            if (this->m_Data.size() == 0)
-                return Vector<double>{};
-
-            double length = std::sqrt((this->m_Data * this->m_Data).sum());
-
-            if (length > 0.9999995 && length < 1.0000005)
+            if (len > 0.9999995 && len < 1.0000005)
                 return *this;
 
-            std::valarray<double> copy(this->m_Data.size());
-            std::copy(std::begin(this->m_Data), std::end(this->m_Data), std::begin(copy));
-            copy /= length;
-            return copy;
+            auto out = *this;
+
+            for (int i = 0; i < Size; i++)
+                out.m_data[i] /= len;
+
+            return out;
         }
 
         double length() const
         {
-            return std::sqrt((this->m_Data * this->m_Data).sum());
+            return std::sqrt(std::reduce(std::begin(m_data), std::end(m_data), 0.0, [](double acc, T item) { return acc + item * item; }));
         }
 
         size_t size() const
         {
-            return this->m_Data.size();
+            return this->m_data.size();
         }
 
         Vector& normalizeSelf()
         {
-            if (this->m_Data.size() == 0)
-                return *this;
+            const auto len = length();
 
-            auto length = length();
-            this->m_Data /= length;
+            for (int i = 0; i < Size; i++)
+                m_data[i] /= len;
+
             return *this;
         }
 
         T dotProduct(const Vector& vec) const
         {
-            expect(this->m_Data.size() > 0 && vec.m_Data.size() > 0);
-            
-            return (this->m_Data * vec.m_Data).sum();
+            T sum = 0;
+            for (int i = 0; i < Size; i++)
+                sum += m_data[i] * vec[i];
+
+            return sum;
         }
 
         double cos(const Vector& vec) const
         {
-            expect(vec.m_Data.size() > 0 && this->m_Data.size() > 0);
-
             return dotProduct(vec) / (length() * vec.length());
         }
 
-        Vector crossProduct(const Vector& vec, bool rowOriented = false) const
+        Vector<T, 3> crossProduct(const Vector<T, 3>& vec, bool rowOriented = false) const
         {
-            expect(this->m_Data.size() == 3 && vec.m_Data.size() == 3);
-
-            return Vector({
-                this->m_Data[1] * vec.m_Data[2] - this->m_Data[2] * vec.m_Data[1],
-                this->m_Data[2] * vec.m_Data[0] - this->m_Data[0] * vec.m_Data[2],
-                this->m_Data[0] * vec.m_Data[1] - this->m_Data[1] * vec.m_Data[0]
-            }, rowOriented);
+            return Vector<T, 3>({
+                m_data[1] * vec.m_data[2] - m_data[2] * vec.m_data[1],
+                m_data[2] * vec.m_data[0] - m_data[0] * vec.m_data[2],
+                m_data[0] * vec.m_data[1] - m_data[1] * vec.m_data[0]
+            });
         }
 
         T& operator[](size_t index)
         {
-            expect(index < this->m_Data.size());
-            return this->m_Data[index];
+            return m_data[index];
         }
 
         const T& operator[](size_t index) const
         {
-            expect(index < this->m_Data.size());
-            return this->m_Data[index];
-        }
-
-        T& at(size_t index)
-        {
-            if (index > this->m_Data.size())
-                throw std::out_of_range("vector index out of range");
-
-            return this->m_Data[index];
+            return m_data[index];
         }
 
         Vector operator*(const Vector& vec) const
@@ -139,76 +88,106 @@ namespace ModelViewer
             static_assert(false);
         }
 
-        Vector operator*(const Matrix<T>& matrix) const
+        Vector operator*(T number) const
         {
-            return Vector<T>(std::move(Matrix<T>::operator * (matrix)));
+            auto output = m_data;
+            for (int i = 0; i < Size; i++)
+                output[i] *= number;
+
+            return Vector(std::move(output));
+        }
+
+        Vector& operator*=(T number)
+        {
+            for (int i = 0; i < Size; i++)
+                m_data[i] *= number;
+
+            return *this;
         }
 
         Vector operator/(T number) const
         {
             expect(number != 0);
-            return Vector(this->m_Data / number, this->m_NumberRows > 1);
+
+            auto output = m_data;
+            for (int i = 0; i < Size; i++)
+                output[i] /= number;
+
+            return Vector(std::move(output));
         }
 
         Vector& operator/=(T number)
         {
             expect(number != 0);
-            this->m_Data /= number;
+
+            for (int i = 0; i < Size; i++)
+                m_data[i] /= number;
+
             return *this;
         }
 
         Vector operator+(const Vector& vec) const
         {
-            expect(vec.m_Data.size() == this->m_Data.size());
+            auto output = m_data;
+            for (int i = 0; i < Size; i++)
+                output[i] += vec[i];
 
-            return Vector(this->m_Data + vec.m_Data, this->m_NumberRows > 1);
+            return Vector(std::move(output));
         }
 
         Vector& operator+=(const Vector& vec)
         {
-            expect(vec.m_Data.size() == this->m_Data.size());
+            for (int i = 0; i < Size; i++)
+                m_data[i] += vec[i];
 
-            this->m_Data += vec.m_Data;
             return *this;
         }
 
         Vector operator-(const Vector& vec) const
         {
-            expect(vec.m_Data.size() == this->m_Data.size());
+            auto output = m_data;
+            for (int i = 0; i < Size; i++)
+                output[i] -= vec[i];
 
-            return Vector(this->m_Data - vec.m_Data, this->m_NumberRows > 1);
+            return Vector(std::move(output));
         }
 
         Vector& operator-=(const Vector& vec)
         {
-            expect(vec.m_Data.size() == this->m_Data.size());
+            for (int i = 0; i < Size; i++)
+                m_data[i] -= vec[i];
 
-            this->m_Data -= vec.m_Data;
             return *this;
-        }
+        } 
 
         template<typename E>
-        Vector<E> staticCast() const
+        operator Vector<E, Size>() const
         {
-            std::valarray<E> arr(this->m_Data.size());
-            for (size_t i = 0; i < this->m_Data.size(); i++)
-            {
-                arr[i] = static_cast<E>(this->m_Data[i]);
-            }
-            return Vector<E>(std::move(arr), this->m_NumberRows > 1);
+            std::array<E, Size> out;
+            for (int i = 0; i < Size; i++)
+                out[i] = static_cast<E>(m_data[i]);
+            return Vector<E, Size>(std::move(out));
         }
- 
+
+    private:
+        std::array<T, Size> m_data;
     };
 
     template<typename T>
-    Vector<T> operator*(const Matrix<T>& matrix, const Vector<T>& vec)
+    using Vector4 = Vector<T, 4>;
+
+    template<typename T>
+    using Vector3 = Vector<T, 3>;
+
+    template<typename T>
+    Vector4<T> operator*(const Matrix4<T>& matrix, const Vector4<T>& vec)
     {
-        expect(matrix.getNumberColumns() == vec.getNumberRows());
-        expect(vec.getNumberColumns() == 1);
+        Vector4<T> output = {};
 
-        if (matrix.getNumberRows() == 0 || vec.getNumberColumns() == 0)
-            return Vector<T>{};
+        for (int i = 0; i < 4; i++)
+            for (int j = 0; j < 4; j++)
+                output[i] += matrix(j, i) * vec[j];
 
-        return Vector<T>{matrix * static_cast<Matrix<T>>(vec)};
+        return output;
     }
 }

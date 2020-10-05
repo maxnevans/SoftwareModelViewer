@@ -15,6 +15,9 @@
 #include <optional>
 #include <unordered_set>
 #include <future>
+#include <algorithm>
+#include <numeric>
+#include <execution>
 
 // Windows Header Files
 #include <windows.h>

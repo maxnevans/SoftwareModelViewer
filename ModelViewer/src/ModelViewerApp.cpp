@@ -15,12 +15,13 @@ namespace ModelViewer
     ModelViewerApp::ModelViewerApp(int width, int height)
         :
         m_RotateVector({0, 0, 0}),
-        m_rasterizer(width, height)
+        m_rasterizer(width, height),
+        m_pool(std::thread::hardware_concurrency(), 0x8000)
     {
         m_Scene = std::make_shared<Engine::Scene::Scene>();
 
-        m_Camera = std::make_shared<Engine::Scene::Camera>(Vector<double>({ 0.0, 0.0, 3.0 }),
-            Vector<double>({ 0.0, 0.0, 0.0 }), Vector<double>({ 0.0, 1.0, 0.0 }), M_PI / 2, static_cast<double>(width) / height, 1.0, 10.0);
+        m_Camera = std::make_shared<Engine::Scene::Camera>(Vector3<double>({ 0.0, 0.0, 3.0 }),
+            Vector3<double>({ 0.0, 0.0, 0.0 }), Vector3<double>({ 0.0, 1.0, 0.0 }), M_PI / 2, static_cast<double>(width) / height, 1.0, 10.0);
         m_Scene->addCamera(m_Camera);
 
         m_Viewport = std::make_shared<Engine::Viewport>(0, 0, width, height);
@@ -54,27 +55,20 @@ namespace ModelViewer
         const auto& ver = verRef.get();
         const auto& ind = indRef.get();
 
-        const auto screenWidth = data.dimensions.width;
-        const auto screenHeight = data.dimensions.height;
-
-        auto drawLine = [this, &screenWidth, &screenHeight](std::reference_wrapper<const std::vector<Vector<int>>> ver, std::size_t aInd, std::size_t bInd)
+        auto drawLine = [this, &data](std::reference_wrapper<const std::vector<Vector4<int>>> ver, std::size_t aInd, std::size_t bInd)
         {
-            {
-
-                const auto key = calcKey(aInd, bInd);
-
-                std::lock_guard l(m_drawnLinesMutex);
-
-                if (const auto iter = m_drawnLines.find(key); iter != m_drawnLines.end())
-                    return;
-
-                m_drawnLines.insert(key);
-            }
-
+            const auto& [screenWidth, screenHeight] = data.dimensions;
             std::optional clipped = Engine::Primitives::clipLine(0, 0, screenWidth, screenHeight, std::pair{ ver.get()[aInd], ver.get()[bInd] });
 
             if (clipped)
-                m_rasterizer.drawLine((*clipped).first[0], (*clipped).first[1], (*clipped).second[0], (*clipped).second[1], { 0xFF, 0xFF, 0xFF });
+            {
+                constexpr int X = 0;
+                constexpr int Y = 1;
+                const auto v1 = std::move((*clipped).first);
+                const auto v2 = std::move((*clipped).second);
+
+                m_rasterizer.drawLine(v1[X], v1[Y], v2[X], v2[Y], { 0xFF, 0xFF, 0xFF });
+            }
         };
 
         m_rasterizer.begin();
@@ -87,19 +81,12 @@ namespace ModelViewer
             size_t bInd = ind[i + 1] < 0 ? ver.size() + ind[i + 1] : ind[i + 1] - 1;
             size_t cInd = ind[i + 2] < 0 ? ver.size() + ind[i + 2] : ind[i + 2] - 1;
 
-            /*drawLine(verRef, aInd, bInd);
-            drawLine(verRef, bInd, cInd);
-            drawLine(verRef, cInd, aInd);*/
-
-            m_futures[i] = std::async(std::launch::async, drawLine, std::ref(ver), aInd, bInd);
-            m_futures[i + 1] = std::async(std::launch::async, drawLine, std::ref(ver), bInd, cInd);
-            m_futures[i + 2] = std::async(std::launch::async, drawLine, std::ref(ver), cInd, aInd);
+            m_pool.enque(drawLine, std::cref(ver), aInd, bInd);
+            m_pool.enque(drawLine, std::cref(ver), bInd, cInd);
+            m_pool.enque(drawLine, std::cref(ver), cInd, aInd);
         }
 
-        for (auto& future : m_futures)
-            future->wait();
-
-        m_drawnLines.clear();
+        m_pool.wait();
 
         m_rasterizer.end(gfx);
     }
@@ -134,15 +121,15 @@ namespace ModelViewer
     void ModelViewerApp::zoomIn(double zoom)
     {
         m_Zoom -= zoom;
-        m_Camera->changePosition(Vector<double>({ 0.0, 0.0, m_Zoom }),
-            Vector<double>({ 0.0, 0.0, 0.0 }), Vector<double>({ 0.0, 1.0, 0.0 }));
+        m_Camera->changePosition(Vector3<double>({ 0.0, 0.0, m_Zoom }),
+            Vector3<double>({ 0.0, 0.0, 0.0 }), Vector3<double>({ 0.0, 1.0, 0.0 }));
     }
 
     void ModelViewerApp::zoomOut(double zoom)
     {
         m_Zoom += zoom;
-        m_Camera->changePosition(Vector<double>({ 0.0, 0.0, m_Zoom }),
-            Vector<double>({ 0.0, 0.0, 0.0 }), Vector<double>({ 0.0, 1.0, 0.0 }));
+        m_Camera->changePosition(Vector3<double>({ 0.0, 0.0, m_Zoom }),
+            Vector3<double>({ 0.0, 0.0, 0.0 }), Vector3<double>({ 0.0, 1.0, 0.0 }));
     }
 
     void ModelViewerApp::loadMeshFromFile(const std::wstring& filename, OnLoadCallback cb)

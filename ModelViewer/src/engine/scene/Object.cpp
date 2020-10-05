@@ -8,7 +8,7 @@ namespace ModelViewer
     {
         namespace Scene
         {
-            Object::Object(std::vector<Vector<double>> vertices, std::vector<int> indices)
+            Object::Object(std::vector<Vector4<double>> vertices, std::vector<int> indices)
                 :
                 m_Vertices(vertices),
                 m_Indices(indices),
@@ -19,7 +19,7 @@ namespace ModelViewer
             {
             }
 
-            const std::vector<Vector<double>>& Object::getVertices() const
+            const std::vector<Vector4<double>>& Object::getVertices() const
             {
                 return m_Vertices;
             }
@@ -29,7 +29,7 @@ namespace ModelViewer
                 return m_Indices;
             }
 
-            const Matrix<double>& Object::getMatrix() const
+            const Matrix4<double>& Object::getMatrix() const
             {
                 return m_CacheModelMatrix;
             }
@@ -52,7 +52,7 @@ namespace ModelViewer
                 m_CacheModelMatrix = createModelMatrix(m_TranslateVector, m_RotateVector, m_ScaleVector);
             }
 
-            void Object::scale(Vector<double> amount)
+            void Object::scale(Vector4<double> amount)
             {
                 m_ScaleVector = amount;
                 m_CacheModelMatrix = createModelMatrix(m_TranslateVector, m_RotateVector, m_ScaleVector);
@@ -76,7 +76,7 @@ namespace ModelViewer
                 m_CacheModelMatrix = createModelMatrix(m_TranslateVector, m_RotateVector, m_ScaleVector);
             }
 
-            void Object::translate(Vector<double> amount)
+            void Object::translate(Vector4<double> amount)
             {
                 m_TranslateVector = amount;
                 m_CacheModelMatrix = createModelMatrix(m_TranslateVector, m_RotateVector, m_ScaleVector);
@@ -100,13 +100,13 @@ namespace ModelViewer
                 m_CacheModelMatrix = createModelMatrix(m_TranslateVector, m_RotateVector, m_ScaleVector);
             }
 
-            void Object::rotate(Vector<double> amount)
+            void Object::rotate(Vector4<double> amount)
             {
                 m_RotateVector = amount;
                 m_CacheModelMatrix = createModelMatrix(m_TranslateVector, m_RotateVector, m_ScaleVector);
             }
 
-            Matrix<double> Object::createModelMatrix(const Vector<double>& translate, const Vector<double>& rotate, const Vector<double>& scale) const
+            Matrix4<double> Object::createModelMatrix(const Vector4<double>& translate, const Vector4<double>& rotate, const Vector4<double>& scale) const
             {
                 auto ret = createTranslateMatrix(translate);
 
