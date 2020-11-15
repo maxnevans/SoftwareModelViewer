@@ -303,6 +303,11 @@ namespace ModelViewer
         {
             m_App.zoomOut(zoomStep);
         }
+        else if (wParam == VK_ESCAPE)
+        {
+            SendMessage(m_HWnd, WM_CLOSE, 0, 0);
+            return 0;
+        }
         else
         {
             return 0;
