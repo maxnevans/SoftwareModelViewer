@@ -46,20 +46,20 @@ namespace ModelViewer
             void Camera::changePosition(Vector3<double> position)
             {
                 m_shouldUpdateViewMatrix = true;
-                m_position = position;
+                m_position = std::move(position);
                 
             }
 
             void Camera::changeTarget(Vector3<double> target)
             {
                 m_shouldUpdateViewMatrix = true;
-                m_target = target;
+                m_target = std::move(target);
             }
 
             void Camera::changeUpVector(Vector3<double> upVector)
             {
                 m_shouldUpdateViewMatrix = true;
-                m_upVector = upVector;
+                m_upVector = std::move(upVector);
             }
 
             void Camera::setAspectRatio(double ratio)
