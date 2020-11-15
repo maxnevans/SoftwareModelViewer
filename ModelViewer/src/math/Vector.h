@@ -169,6 +169,26 @@ namespace ModelViewer
             return Vector<E, Size>(std::move(out));
         }
 
+        operator Vector<T, 4>() const
+        {
+            expect(Size == 3);
+
+            Vector<T, 4> output;
+            for (int i = 0; i < Size; i++)
+                output[i] = m_data[i];
+            return output;
+        }
+
+        operator Vector<T, 3>() const
+        {
+            expect(Size == 4);
+
+            Vector<T, 3> output;
+            for (int i = 0; i < 3; i++)
+                output[i] = m_data[i];
+            return output;
+        }
+
     private:
         std::array<T, Size> m_data;
     };
@@ -189,5 +209,11 @@ namespace ModelViewer
                 output[i] += matrix(j, i) * vec[j];
 
         return output;
+    }
+
+    template<typename T>
+    Vector4<T> operator*(const Matrix4<T>& matrix, const Vector3<T>& vec)
+    {
+        return matrix * static_cast<const Vector4<T>&>(vec);
     }
 }
