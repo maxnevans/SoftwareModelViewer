@@ -43,9 +43,23 @@ namespace ModelViewer
                 return m_ProjectionMatrix;
             }
 
-            void Camera::changePosition(Vector3<double> position, Vector3<double> target, Vector3<double> upVector)
+            void Camera::changePosition(Vector3<double> position)
             {
-                m_ViewMatrix = createViewMatrix(position, target, upVector);
+                m_shouldUpdateViewMatrix = true;
+                m_position = position;
+                
+            }
+
+            void Camera::changeTarget(Vector3<double> target)
+            {
+                m_shouldUpdateViewMatrix = true;
+                m_target = target;
+            }
+
+            void Camera::changeUpVector(Vector3<double> upVector)
+            {
+                m_shouldUpdateViewMatrix = true;
+                m_upVector = upVector;
             }
 
             void Camera::setAspectRatio(double ratio)

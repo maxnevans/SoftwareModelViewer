@@ -15,7 +15,9 @@ namespace ModelViewer
                 Camera(Vector3<double> position, Vector3<double> target, Vector3<double> upVector, double fov, double aspectRatio, double zNear, double zFar);
                 const Matrix4<double>& getViewMatrix();
                 const Matrix4<double>& getProjectionMatrix();
-                void changePosition(Vector3<double> position, Vector3<double> target, Vector3<double> upVector);
+                void changePosition(Vector3<double> position);
+                void changeTarget(Vector3<double> target);
+                void changeUpVector(Vector3<double> upVector);
                 void setAspectRatio(double ratio);
 
             private:

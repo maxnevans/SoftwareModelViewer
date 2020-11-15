@@ -121,15 +121,13 @@ namespace ModelViewer
     void ModelViewerApp::zoomIn(double zoom)
     {
         m_Zoom -= zoom;
-        m_Camera->changePosition(Vector3<double>({ 0.0, 0.0, m_Zoom }),
-            Vector3<double>({ 0.0, 0.0, 0.0 }), Vector3<double>({ 0.0, 1.0, 0.0 }));
+        m_Camera->changePosition(Vector3<double>({ 0.0, 0.0, m_Zoom }));
     }
 
     void ModelViewerApp::zoomOut(double zoom)
     {
         m_Zoom += zoom;
-        m_Camera->changePosition(Vector3<double>({ 0.0, 0.0, m_Zoom }),
-            Vector3<double>({ 0.0, 0.0, 0.0 }), Vector3<double>({ 0.0, 1.0, 0.0 }));
+        m_Camera->changePosition(Vector3<double>({ 0.0, 0.0, m_Zoom }));
     }
 
     void ModelViewerApp::loadMeshFromFile(const std::wstring& filename, OnLoadCallback cb)
