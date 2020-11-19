@@ -21,7 +21,7 @@ namespace ModelViewer
         m_Scene = std::make_shared<Engine::Scene::Scene>();
 
         m_Camera = std::make_shared<Engine::Scene::Camera>(Vector3<double>({ 0.0, 0.0, 3.0 }),
-            Vector3<double>({ 0.0, 0.0, 0.0 }), Vector3<double>({ 0.0, 1.0, 0.0 }), M_PI / 2, static_cast<double>(width) / height, 1.0, 10.0);
+            Vector3<double>({ 0.0, 0.0, 0.0 }), Vector3<double>({ 0.0, 1.0, 0.0 }), M_PI / 2, static_cast<double>(width) / height, 0, 10.0);
         m_Scene->addCamera(m_Camera);
 
         m_Viewport = std::make_shared<Engine::Viewport>(0, 0, width, height);
@@ -81,6 +81,9 @@ namespace ModelViewer
             size_t bInd = ind[i + 1] < 0 ? ver.size() + ind[i + 1] : ind[i + 1] - 1;
             size_t cInd = ind[i + 2] < 0 ? ver.size() + ind[i + 2] : ind[i + 2] - 1;
 
+            if (ver[aInd][2] <= 0 || ver[bInd][2] <= 0 || ver[cInd][3] <= 0)
+                continue;
+
             m_pool.enque(drawLine, std::cref(ver), aInd, bInd);
             m_pool.enque(drawLine, std::cref(ver), bInd, cInd);
             m_pool.enque(drawLine, std::cref(ver), cInd, aInd);
@@ -121,13 +124,15 @@ namespace ModelViewer
     void ModelViewerApp::zoomIn(double zoom)
     {
         m_Zoom -= zoom;
-        m_Camera->changePosition(Vector3<double>({ 0.0, 0.0, m_Zoom }));
+        //m_Camera->changePosition(Vector3<double>({ 0.0, 0.0, m_Zoom }));
+        m_Model->scale(Vector4<double>({ m_Zoom, m_Zoom, m_Zoom }));
     }
 
     void ModelViewerApp::zoomOut(double zoom)
     {
         m_Zoom += zoom;
-        m_Camera->changePosition(Vector3<double>({ 0.0, 0.0, m_Zoom }));
+        //m_Camera->changePosition(Vector3<double>({ 0.0, 0.0, m_Zoom }));
+        m_Model->scale(Vector4<double>({ m_Zoom, m_Zoom, m_Zoom }));
     }
 
     void ModelViewerApp::loadMeshFromFile(const std::wstring& filename, OnLoadCallback cb)

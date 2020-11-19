@@ -48,9 +48,10 @@ namespace ModelViewer
                     for (auto&& vertex : objVertices)
                     {
                         auto transformedVertex = vpvm * vertex;
-                        transformedVertex /= transformedVertex[3];
+                        transformedVertex[0] /= transformedVertex[3];
+                        transformedVertex[1] /= transformedVertex[3];
                         m_vertices.push_back(static_cast<Vector4<int>>(transformedVertex));
-                    } 
+                    }
 
                     m_indices.insert(m_indices.end(), objIndices.begin(), objIndices.end());
                 }

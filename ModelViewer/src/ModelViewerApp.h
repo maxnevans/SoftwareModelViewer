@@ -37,7 +37,7 @@ namespace ModelViewer
 
     private:
         Vector4<double> m_RotateVector = {};
-        double m_Zoom = 3.0;
+        double m_Zoom = 1.0;
         OnLoadCallback m_OnLoadCb = nullptr;
         std::shared_ptr<Engine::Scene::Object> m_Model = nullptr;
         std::shared_ptr<Engine::Scene::Scene> m_Scene = nullptr;
