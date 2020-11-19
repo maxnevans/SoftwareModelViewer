@@ -30,7 +30,7 @@ namespace ModelViewer
             });
         }
 
-        Matrix4<double> createRotateXMatrix(double angle)
+        inline Matrix4<double> createRotateXMatrix(double angle)
         {
             return Matrix4<double>({
                 1,      0,                  0,                  0,
@@ -40,7 +40,7 @@ namespace ModelViewer
             });
         }
 
-        Matrix4<double> createRotateYMatrix(double angle)
+        inline Matrix4<double> createRotateYMatrix(double angle)
         {
             return Matrix4<double>({
                 std::cos(angle),    0,      std::sin(angle),        0,
@@ -50,7 +50,7 @@ namespace ModelViewer
             });
         }
 
-        Matrix4<double> createRotateZMatrix(double angle)
+        inline Matrix4<double> createRotateZMatrix(double angle)
         {
             return Matrix4<double>({
                 std::cos(angle),    -std::sin(angle),       0,      0,
@@ -88,6 +88,18 @@ namespace ModelViewer
         Vector4<T> rotateZ(const Vector4<T>& vec, double angle)
         {
             return vec * createRotateZMatrix(angle);
+        }
+
+        template<typename T, std::size_t Size>
+        constexpr Matrix<T, Size> createIdentityMatrix()
+        {
+            Matrix<T, Size> out;
+            for (int i = 0; i < Size; i++)
+            {
+                out(i, i) = static_cast<T>(1);
+            }
+
+            return out;
         }
     }
 }
