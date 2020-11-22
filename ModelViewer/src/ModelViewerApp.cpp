@@ -55,20 +55,25 @@ namespace ModelViewer
         const auto& ver = verRef.get();
         const auto& ind = indRef.get();
 
-        auto drawLine = [this, &data](std::reference_wrapper<const std::vector<Vector4<int>>> ver, std::size_t aInd, std::size_t bInd)
+        const auto drawLine = [this, &data](std::reference_wrapper<const std::vector<Vector4<int>>> ver, std::size_t aInd, std::size_t bInd)
         {
             const auto& [screenWidth, screenHeight] = data.dimensions;
-            std::optional clipped = Engine::Primitives::clipLine(0, 0, screenWidth, screenHeight, std::pair{ ver.get()[aInd], ver.get()[bInd] });
+            std::optional clippedLine = Engine::Primitives::clipLine(0, 0, 
+                screenWidth, screenHeight, std::pair{ ver.get()[aInd], ver.get()[bInd] });
 
-            if (clipped)
+            if (clippedLine)
             {
-                constexpr int X = 0;
-                constexpr int Y = 1;
-                const auto v1 = std::move((*clipped).first);
-                const auto v2 = std::move((*clipped).second);
+                const auto v1 = std::move((*clippedLine).first);
+                const auto v2 = std::move((*clippedLine).second);
 
                 m_rasterizer.drawLine(v1[X], v1[Y], v2[X], v2[Y], { 0xFF, 0xFF, 0xFF });
             }
+        };
+
+        const auto drawTriangle = [this, &data](std::reference_wrapper<const std::vector<Vector4<int>>> ver,
+            std::size_t aInd, std::size_t bInd, std::size_t cInd)
+        {
+            m_rasterizer.drawTriangle(ver.get()[aInd], ver.get()[bInd], ver.get()[cInd], { 0xFF, 0xFF, 0xFF });
         };
 
         m_rasterizer.begin();
@@ -84,9 +89,15 @@ namespace ModelViewer
             if (ver[aInd][2] <= 0 || ver[bInd][2] <= 0 || ver[cInd][3] <= 0)
                 continue;
 
+#if 0
             m_pool.enque(drawLine, std::cref(ver), aInd, bInd);
             m_pool.enque(drawLine, std::cref(ver), bInd, cInd);
             m_pool.enque(drawLine, std::cref(ver), cInd, aInd);
+#elif 1
+            drawTriangle(std::cref(ver), aInd, bInd, cInd);
+            //m_pool.enque(drawTriangle, std::cref(ver), aInd, bInd, cInd);
+
+#endif
         }
 
         m_pool.wait();
