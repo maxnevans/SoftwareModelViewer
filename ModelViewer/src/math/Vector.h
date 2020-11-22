@@ -179,14 +179,23 @@ namespace ModelViewer
             return output;
         }
 
-        operator Vector<T, 3>() const
+        template<std::size_t NewSize>
+        operator Vector<T, NewSize>() const
         {
-            expect(Size == 4);
-
-            Vector<T, 3> output;
-            for (int i = 0; i < 3; i++)
-                output[i] = m_data[i];
-            return output;
+            if (NewSize < Size)
+            {
+                Vector<T, NewSize> out;
+                for (int i = 0; i < NewSize; i++)
+                    out[i] = m_data[i];
+                return out;
+            }
+            else
+            {
+                Vector<T, NewSize> out(std::array<T, NewSize>{});
+                for (int i = 0; i < Size; i++)
+                    out[i] = m_data[i];
+                return out;
+            }
         }
 
     private:
@@ -198,6 +207,14 @@ namespace ModelViewer
 
     template<typename T>
     using Vector3 = Vector<T, 3>;
+
+    template<typename T>
+    using Vec2 = Vector<T, 2>;
+
+    enum CoordinateNames
+    {
+        X, Y, Z, W
+    };
 
     template<typename T>
     Vector4<T> operator*(const Matrix4<T>& matrix, const Vector4<T>& vec)
