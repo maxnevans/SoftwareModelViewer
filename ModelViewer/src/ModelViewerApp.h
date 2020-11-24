@@ -8,6 +8,7 @@
 #include "engine/scene/Object.h"
 #include "engine/scene/Camera.h"
 #include "engine/Rasterizer.h"
+#include "engine/light/Lambert.h"
 
 namespace ModelViewer
 {

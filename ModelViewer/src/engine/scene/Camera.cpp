@@ -56,6 +56,16 @@ namespace ModelViewer
                 m_target = std::move(target);
             }
 
+            Vector3<double> Camera::getPosition() const
+            {
+                return m_position;
+            }
+
+            Vector3<double> Camera::getTarget() const
+            {
+                return m_target;
+            }
+
             void Camera::changeUpVector(Vector3<double> upVector)
             {
                 m_shouldUpdateViewMatrix = true;

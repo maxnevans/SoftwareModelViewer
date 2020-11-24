@@ -2,6 +2,8 @@
 #include "Object.h"
 #include "Camera.h"
 #include "engine/Viewport.h"
+#include "engine/Rasterizer.h"
+#include "engine/light/Lambert.h"
 
 namespace ModelViewer
 {
@@ -9,19 +11,29 @@ namespace ModelViewer
     {
         namespace Scene
         {
+            struct RenderResult
+            {
+                std::reference_wrapper<const std::vector<Vector4<double>>> ver;
+                std::reference_wrapper<const std::vector<int>> ind;
+                std::reference_wrapper<const std::vector<Engine::Color>> col;
+            };
+
             class Scene
             {
             public:
+                Scene();
                 void addCamera(const std::shared_ptr<Camera>& camera);
                 void addObject(const std::shared_ptr<Object>& object);
-                std::pair<std::reference_wrapper<const std::vector<Vector4<int>>>, std::reference_wrapper<const std::vector<int>>> render(Viewport& vp);
+                RenderResult render(Viewport& vp);
 
             private:
                 std::vector<std::shared_ptr<Camera>> m_Cameras;
                 std::shared_ptr<Camera> m_CurrentActiveCamera;
                 std::vector<std::shared_ptr<Object>> m_Objects;
-                std::vector<Vector4<int>> m_vertices;
+                std::vector<Vector4<double>> m_vertices;
                 std::vector<int> m_indices;
+                std::vector<Engine::Color> m_colors;
+                Light::Lambert m_light;
             };
         }
     }

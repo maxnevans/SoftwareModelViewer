@@ -5,7 +5,7 @@
 namespace ModelViewer::Engine::Primitives
 {
     template<typename T, std::size_t CountVertices>
-    using GenericPrimitive = std::array<std::reference_wrapper<Vector4<T>>, CountVertices>;
+    using GenericPrimitive = std::array<std::reference_wrapper<const Vector4<T>>, CountVertices>;
 
     constexpr std::size_t LINE_VERTICES_COUNT = 2;
     template<typename T>
@@ -15,11 +15,26 @@ namespace ModelViewer::Engine::Primitives
 
     constexpr std::size_t TRIANGLE_VERTICES_COUNT = 3;
     template<typename T>
-    using Triangle = GenericPrimitive<T, LINE_VERTICES_COUNT>;
+    using Triangle = GenericPrimitive<T, TRIANGLE_VERTICES_COUNT>;
 
     using IntTriangle = Triangle<int>;
+    using FltTriangle = Triangle<double>;
 
-    unsigned char calcPointRegionCode(const int left, const int top, const int right, const int bottom, const double x, const double y)
+    inline Vector3<double> calcTriangleNormal(const FltTriangle& triangle)
+    {
+        const auto a = triangle[0].get() - triangle[1].get();
+        const auto b = triangle[0].get() - triangle[2].get();
+        return static_cast<Vector3<double>>(a.crossProduct(b)).normalize();
+    }
+
+    inline bool isTriangleTowardsCamera(const Vector3<double>& cameraVector, 
+        const FltTriangle& triangle)
+    {
+        return calcTriangleNormal(triangle).cos(cameraVector) < 0;
+    }
+
+    inline unsigned char calcPointRegionCode(const int left, const int top, const int right, 
+        const int bottom, const double x, const double y)
     {
         unsigned char flags = 0;
         flags |= x < left;
@@ -30,7 +45,8 @@ namespace ModelViewer::Engine::Primitives
         return flags;
     }
 
-    std::optional<std::pair<Vector4<int>, Vector4<int>>> clipLine(const int x, const  int y, const int width, const int height, const std::pair<Vector4<int>, Vector4<int>>& line)
+    inline std::optional<std::pair<Vector4<int>, Vector4<int>>> clipLine(const int x, const  int y, 
+        const int width, const int height, const std::pair<Vector4<int>, Vector4<int>>& line)
     {
         const int xWidth = x + width;
         const int yHeight = y + height;

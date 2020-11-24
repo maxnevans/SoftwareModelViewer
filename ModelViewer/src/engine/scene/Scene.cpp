@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Scene.h"
 #include "Core.h"
+#include "engine/Primitives.h"
 
 namespace ModelViewer
 {
@@ -8,6 +9,12 @@ namespace ModelViewer
     {
         namespace Scene
         {
+            Scene::Scene()
+                :
+                m_light(Vector3<double>({ 0, 5.0, 5.0 }), { 150, 20, 20 }, 50)
+            {
+            }
+
             void Scene::addCamera(const std::shared_ptr<Camera>& camera)
             {
                 expect(camera);
@@ -25,14 +32,16 @@ namespace ModelViewer
 
                 m_vertices.reserve(object->getVertices().size());
                 m_indices.reserve(object->getIndices().size());
+                m_colors.reserve(object->getIndices().size());
             }
 
-            std::pair<std::reference_wrapper<const std::vector<Vector4<int>>>, std::reference_wrapper<const std::vector<int>>> Scene::render(Viewport& vp)
+            RenderResult Scene::render(Viewport& vp)
             {
                 expect(m_CurrentActiveCamera);
 
                 m_vertices.clear();
                 m_indices.clear();
+                m_colors.clear();
 
                 const auto vpv = vp.getMatrix() 
                     * m_CurrentActiveCamera->getProjectionMatrix() 
@@ -43,20 +52,61 @@ namespace ModelViewer
                     const auto& objVertices = object->getVertices();
                     const auto& objIndices = object->getIndices();
 
-                    const auto vpvm = vpv * object->getMatrix();
+                    m_vertices.resize(objVertices.size());
+                    m_indices.resize(objIndices.size());
+                    m_colors.resize(objIndices.size());
 
-                    for (auto&& vertex : objVertices)
+                    const auto& m = object->getMatrix();
+
+                    // Copy indices
+                    for (std::size_t i = 0; i < objIndices.size(); i++)
+                        m_indices[i] = objIndices[i];
+
+                    // Copy vertices
+                    for (std::size_t i = 0; i < objVertices.size(); i++)
                     {
-                        auto transformedVertex = vpvm * vertex;
-                        transformedVertex[0] /= transformedVertex[3];
-                        transformedVertex[1] /= transformedVertex[3];
-                        m_vertices.push_back(static_cast<Vector4<int>>(transformedVertex));
+                        m_vertices[i] = objVertices[i];
                     }
 
-                    m_indices.insert(m_indices.end(), objIndices.begin(), objIndices.end());
+                    // Model matrix applying
+                    for (std::size_t i = 0; i < m_vertices.size(); i++)
+                    {
+                        m_vertices[i] = m * m_vertices[i];
+                    }
+
+                    // Light calculation
+                    for (std::size_t i = 0; i < m_indices.size(); i += 3)
+                    {
+                        expect(m_indices[i] != 0 && m_indices[i + 1] != 0 && m_indices[i + 2] != 0);
+
+                        size_t aInd = m_indices[i] < 0 ? m_vertices.size() + m_indices[i] : m_indices[i] - 1;
+                        size_t bInd = m_indices[i + 1] < 0 ? m_vertices.size() + m_indices[i + 1] : m_indices[i + 1] - 1;
+                        size_t cInd = m_indices[i + 2] < 0 ? m_vertices.size() + m_indices[i + 2] : m_indices[i + 2] - 1;
+
+                        Engine::Primitives::FltTriangle triangle = {
+                            std::cref(m_vertices[aInd]),
+                            std::cref(m_vertices[bInd]),
+                            std::cref(m_vertices[cInd])
+                        };
+
+                        m_colors[i + 2] = m_colors[i + 1] = m_colors[i] =
+                            m_light({ 0xFF, 0xFF, 0xFF }, triangle);
+                    }
+
+                    // View Projective Viewport matrix applying and dividing by W
+                    for (std::size_t i = 0; i < m_vertices.size(); i++)
+                    {
+                        m_vertices[i] = vpv * m_vertices[i];
+                        m_vertices[i][X] /= m_vertices[i][W];
+                        m_vertices[i][Y] /= m_vertices[i][W];
+                    }
                 }
 
-                return {std::cref(m_vertices), std::cref(m_indices)};
+                return {
+                    std::cref(m_vertices), 
+                    std::cref(m_indices),
+                    std::cref(m_colors)
+                };
             }
         }
     }

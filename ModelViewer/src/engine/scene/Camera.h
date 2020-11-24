@@ -17,6 +17,8 @@ namespace ModelViewer
                 const Matrix4<double>& getProjectionMatrix();
                 void changePosition(Vector3<double> position);
                 void changeTarget(Vector3<double> target);
+                Vector3<double> getPosition() const;
+                Vector3<double> getTarget() const;
                 void changeUpVector(Vector3<double> upVector);
                 void setAspectRatio(double ratio);
 

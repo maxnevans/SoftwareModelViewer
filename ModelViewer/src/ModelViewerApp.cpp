@@ -51,11 +51,12 @@ namespace ModelViewer
 
     void ModelViewerApp::draw(Gdiplus::Graphics& gfx, const AdditionalDrawData& data)
     {
-        auto&& [verRef, indRef] = m_Scene->render(*m_Viewport);
+        auto&& [verRef, indRef, colRef] = m_Scene->render(*m_Viewport);
         const auto& ver = verRef.get();
         const auto& ind = indRef.get();
+        const auto& col = colRef.get();
 
-        const auto drawLine = [this, &data](std::reference_wrapper<const std::vector<Vector4<int>>> ver, std::size_t aInd, std::size_t bInd)
+        const auto drawLine = [this, &data](std::reference_wrapper<const std::vector<Vector4<double>>> ver, std::size_t aInd, std::size_t bInd)
         {
             const auto& [screenWidth, screenHeight] = data.dimensions;
             std::optional clippedLine = Engine::Primitives::clipLine(0, 0, 
@@ -70,11 +71,24 @@ namespace ModelViewer
             }
         };
 
-        const auto drawTriangle = [this, &data](std::reference_wrapper<const std::vector<Vector4<int>>> ver,
-            std::size_t aInd, std::size_t bInd, std::size_t cInd)
+        const auto drawTriangle = [this, &data](std::reference_wrapper<const std::vector<Vector4<double>>> ver,
+            std::size_t aInd, std::size_t bInd, std::size_t cInd, std::reference_wrapper<const Vector3<int>> cameraVector,
+            Engine::Color color)
         {
-            m_rasterizer.drawTriangle(ver.get()[aInd], ver.get()[bInd], ver.get()[cInd], { 0xFF, 0xFF, 0xFF });
+            Engine::Primitives::FltTriangle triangle = {
+                std::cref(ver.get()[aInd]),
+                std::cref(ver.get()[bInd]),
+                std::cref(ver.get()[cInd])
+            };
+
+            if (Engine::Primitives::isTriangleTowardsCamera(cameraVector.get(), triangle))
+            {
+                m_rasterizer.drawTriangle(ver.get()[aInd], ver.get()[aInd][Z], ver.get()[bInd], ver.get()[bInd][Z], 
+                    ver.get()[cInd], ver.get()[cInd][Z], color);
+            }
         };
+
+        const auto cameraVector = static_cast<Vector3<int>>(m_Camera->getPosition() - m_Camera->getTarget());
 
         m_rasterizer.begin();
 
@@ -89,13 +103,15 @@ namespace ModelViewer
             if (ver[aInd][2] <= 0 || ver[bInd][2] <= 0 || ver[cInd][3] <= 0)
                 continue;
 
+            Engine::Color color = col[i];
+
 #if 0
             m_pool.enque(drawLine, std::cref(ver), aInd, bInd);
             m_pool.enque(drawLine, std::cref(ver), bInd, cInd);
             m_pool.enque(drawLine, std::cref(ver), cInd, aInd);
 #elif 1
-            drawTriangle(std::cref(ver), aInd, bInd, cInd);
-            //m_pool.enque(drawTriangle, std::cref(ver), aInd, bInd, cInd);
+            //drawTriangle(std::cref(ver), aInd, bInd, cInd, std::cref(cameraVector), color);
+            m_pool.enque(drawTriangle, std::cref(ver), aInd, bInd, cInd, std::cref(cameraVector), color);
 
 #endif
         }

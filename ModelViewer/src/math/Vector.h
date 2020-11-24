@@ -32,7 +32,12 @@ namespace ModelViewer
 
         double length() const
         {
-            return std::sqrt(std::reduce(std::begin(m_data), std::end(m_data), 0.0, [](double acc, T item) { return acc + item * item; }));
+            return std::sqrt(lengthSquared());
+        }
+
+        double lengthSquared() const
+        {
+            return std::reduce(std::begin(m_data), std::end(m_data), 0.0, [](double acc, T item) { return acc + item * item; });
         }
 
         size_t size() const
@@ -67,9 +72,9 @@ namespace ModelViewer
         Vector<T, 3> crossProduct(const Vector<T, 3>& vec, bool rowOriented = false) const
         {
             return Vector<T, 3>({
-                m_data[1] * vec.m_data[2] - m_data[2] * vec.m_data[1],
-                m_data[2] * vec.m_data[0] - m_data[0] * vec.m_data[2],
-                m_data[0] * vec.m_data[1] - m_data[1] * vec.m_data[0]
+                m_data[1] * vec[2] - m_data[2] * vec[1],
+                m_data[2] * vec[0] - m_data[0] * vec[2],
+                m_data[0] * vec[1] - m_data[1] * vec[0]
             });
         }
 
@@ -179,21 +184,21 @@ namespace ModelViewer
             return output;
         }
 
-        template<std::size_t NewSize>
-        operator Vector<T, NewSize>() const
+        template<typename E, std::size_t NewSize>
+        operator Vector<E, NewSize>() const
         {
             if (NewSize < Size)
             {
                 Vector<T, NewSize> out;
                 for (int i = 0; i < NewSize; i++)
-                    out[i] = m_data[i];
+                    out[i] = static_cast<E>(m_data[i]);
                 return out;
             }
             else
             {
                 Vector<T, NewSize> out(std::array<T, NewSize>{});
                 for (int i = 0; i < Size; i++)
-                    out[i] = m_data[i];
+                    out[i] = static_cast<E>(m_data[i]);
                 return out;
             }
         }
