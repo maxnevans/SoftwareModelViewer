@@ -13,7 +13,7 @@ namespace ModelViewer
             {
             public:
                 Lambert(Vector3<double> position, Color color, double intensity);
-                Color operator()(Color emissiveColor, Primitives::FltTriangle triangle) const;
+                Color operator()(Color emissiveColor, Primitives::FltTriangleRef triangle) const;
 
             private:
                 Color m_color;

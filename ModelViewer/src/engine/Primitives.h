@@ -4,23 +4,131 @@
 
 namespace ModelViewer::Engine::Primitives
 {
+    // Generic stuff
+    // ==========================================================
+
     template<typename T, std::size_t CountVertices>
-    using GenericPrimitive = std::array<std::reference_wrapper<const Vector4<T>>, CountVertices>;
+    using GenericPrimitiveRef = std::array<std::reference_wrapper<const Vector4<T>>, CountVertices>;
+
+    template<typename T, std::size_t CountVertices>
+    using GenericPrimitive = std::array<Vector4<T>, CountVertices>;
+
+    // Line
+    // ==========================================================
 
     constexpr std::size_t LINE_VERTICES_COUNT = 2;
+
+    template<typename T>
+    using LineRef = GenericPrimitiveRef<T, LINE_VERTICES_COUNT>;
+
     template<typename T>
     using Line = GenericPrimitive<T, LINE_VERTICES_COUNT>;
 
+    using IntLineRef = LineRef<int>;
+    using FltLineRef = LineRef<double>;
     using IntLine = Line<int>;
+    using FltLine = Line<double>;
+
+    // Triangle
+    // =========================================================
 
     constexpr std::size_t TRIANGLE_VERTICES_COUNT = 3;
+
+    template<typename T>
+    using TriangleRef = GenericPrimitiveRef<T, TRIANGLE_VERTICES_COUNT>;
+
     template<typename T>
     using Triangle = GenericPrimitive<T, TRIANGLE_VERTICES_COUNT>;
 
+    using IntTriangleRef = TriangleRef<int>;
+    using FltTriangleRef = TriangleRef<double>;
     using IntTriangle = Triangle<int>;
     using FltTriangle = Triangle<double>;
 
-    inline Vector3<double> calcTriangleNormal(const FltTriangle& triangle)
+    // Quadrangle
+    // =========================================================
+
+    constexpr std::size_t QUADRANGLE_VERTICES_COUNT = 4;
+
+    template<typename T>
+    using QuadrangleRef = GenericPrimitiveRef<T, QUADRANGLE_VERTICES_COUNT>;
+
+    template<typename T>
+    using Quadrangle = GenericPrimitive<T, QUADRANGLE_VERTICES_COUNT>;
+
+    using IntQuadrangleRef = QuadrangleRef<int>;
+    using FltQuadrangleRef = QuadrangleRef<double>;
+    using IntQuadrangle = Quadrangle<int>;
+    using FltQuadrangle = Quadrangle<double>;
+
+    // Pentagon
+    // =========================================================
+
+    constexpr std::size_t PENTAGON_VERTICES_COUNT = 5;
+
+    template<typename T>
+    using PentagonRef = GenericPrimitiveRef<T, PENTAGON_VERTICES_COUNT>;
+
+    template<typename T>
+    using Pentagon = GenericPrimitive<T, PENTAGON_VERTICES_COUNT>;
+
+    using IntPentagonRef = PentagonRef<int>;
+    using FltPentagonRef = PentagonRef<double>;
+    using IntPentagon = Pentagon<int>;
+    using FltPentagon = Pentagon<double>;
+
+    // Hexagon
+    // =========================================================
+
+    constexpr std::size_t HEXAGON_VERTICES_COUNT = 6;
+
+    template<typename T>
+    using HexagonRef = GenericPrimitiveRef<T, HEXAGON_VERTICES_COUNT>;
+
+    template<typename T>
+    using Hexagon = GenericPrimitive<T, HEXAGON_VERTICES_COUNT>;
+
+    using IntHexagonRef = HexagonRef<int>;
+    using FltHexagonRef = HexagonRef<double>;
+    using IntHexagon = Hexagon<int>;
+    using FltHexagon = Hexagon<double>;
+
+    // Heptagon
+    // =========================================================
+
+    constexpr std::size_t HEPTAGON_VERTICES_COUNT = 7;
+
+    template<typename T>
+    using HeptagonRef = GenericPrimitiveRef<T, HEPTAGON_VERTICES_COUNT>;
+
+    template<typename T>
+    using Heptagon = GenericPrimitive<T, HEPTAGON_VERTICES_COUNT>;
+
+    using IntHeptagonRef = HeptagonRef<int>;
+    using FltHeptagonRef = HeptagonRef<double>;
+    using IntHeptagon = Heptagon<int>;
+    using FltHeptagon = Heptagon<double>;
+
+    // Octagon
+    // =========================================================
+
+    constexpr std::size_t OCTAGON_VERTICES_COUNT = 8;
+
+    template<typename T>
+    using OctagonRef = GenericPrimitiveRef<T, OCTAGON_VERTICES_COUNT>;
+
+    template<typename T>
+    using Octagon = GenericPrimitive<T, OCTAGON_VERTICES_COUNT>;
+
+    using IntOctagonRef = OctagonRef<int>;
+    using FltOctagonRef = OctagonRef<double>;
+    using IntOctagon = Octagon<int>;
+    using FltOctagon = Octagon<double>;
+
+    // Functions
+    // ==========================================================
+
+    inline Vector3<double> calcTriangleNormal(const FltTriangleRef& triangle)
     {
         const auto a = triangle[0].get() - triangle[1].get();
         const auto b = triangle[0].get() - triangle[2].get();
@@ -28,7 +136,7 @@ namespace ModelViewer::Engine::Primitives
     }
 
     inline bool isTriangleTowardsCamera(const Vector3<double>& cameraVector, 
-        const FltTriangle& triangle)
+        const FltTriangleRef& triangle)
     {
         return calcTriangleNormal(triangle).cos(cameraVector) < 0;
     }
@@ -127,5 +235,129 @@ namespace ModelViewer::Engine::Primitives
                 }
             }
         }
+    }
+
+    using TriangleClipVariant = std::variant<FltTriangle, FltQuadrangle, FltPentagon, 
+        FltHexagon, FltHeptagon, FltOctagon>;
+
+    inline std::optional<TriangleClipVariant> clipTriangle(const int x, const  int y,
+        const int width, const int height, FltTriangleRef triangle)
+    {
+        // Triangle is behind camera
+        if (triangle[0].get()[Z] <= 0
+            && triangle[1].get()[Z] <= 0
+            && triangle[2].get()[Z] <= 0)
+            return std::nullopt;
+
+        TriangleClipVariant output = {};
+
+        // Clip vertices behind camera
+        if (triangle[0].get()[Z] < 0
+            || triangle[1].get()[Z] < 0
+            || triangle[2].get()[Z] < 0)
+        {
+
+            const auto clipZ = [](const Vec4<double>& unknownVertexA, 
+                const Vec4<double>& unknownVertexB, const Vec4<double>& negativeVertex) -> TriangleClipVariant
+            {
+                const auto clip2Sides = [](const Vec4<double>& vertexToClip, const Vec4<double>& a, const Vec4<double>& b)
+                {
+                    const auto zDistanceA = vertexToClip[Z] - a[Z];
+                    const auto zDistanceB = vertexToClip[Z] - b[Z];
+                    const auto zFactorA = a[Z] / zDistanceA;
+                    const auto zFactorB = b[Z] / zDistanceB;
+
+                    Vec4<double> newA = a;
+                    Vec4<double> newB = b;
+
+                    newA[Z] = 0;
+                    newA[X] -= (vertexToClip[X] - a[X]) * zFactorA;
+                    newA[Y] -= (vertexToClip[Y] - a[Y]) * zFactorA;
+
+                    newB[Z] = 0;
+                    newB[X] -= (vertexToClip[X] - b[X]) * zFactorB;
+                    newB[Y] -= (vertexToClip[Y] - b[Y]) * zFactorB;
+
+                    // Now we got triangle with new 2 vertices
+                    return std::pair{ newA, newB };
+                };
+
+                // B is the only positive Z
+                if (unknownVertexA[Z] < 0)
+                {
+                    auto [newA, newC] = clip2Sides(unknownVertexB, unknownVertexA, negativeVertex);
+                    return FltTriangle{ newA, unknownVertexB, newC };
+                }
+                // A is the only positive Z
+                else if (unknownVertexB[Z] < 0)
+                {
+                    auto [newB, newC] = clip2Sides(unknownVertexA, unknownVertexB, negativeVertex);
+                    return FltTriangle{ unknownVertexA, newB, newC };
+                }
+                // A and B are positive Z
+                else
+                {
+                    auto [newA, newB] = clip2Sides(negativeVertex, unknownVertexA, unknownVertexB);
+                    return FltQuadrangle{ unknownVertexA, newA, newB, unknownVertexB};
+                }
+            };
+
+            if (triangle[0].get()[Z] < 0)
+            {
+                output = clipZ(triangle[1].get(), triangle[2].get(), triangle[0].get());
+            }
+            else if (triangle[1].get()[Z] < 0)
+            {
+                output = clipZ(triangle[0].get(), triangle[2].get(), triangle[1].get());
+            }
+            else
+            {
+                output = clipZ(triangle[0].get(), triangle[1].get(), triangle[2].get());
+            }
+        }
+
+        // Clipping sides out of screen        
+
+        // Bool in pair: have line been clipped off?
+        std::array<std::pair<std::optional<FltLine>, bool>, OCTAGON_VERTICES_COUNT> sidesBuffer = {};
+        const int countVertices = std::get_if<FltTriangle>(&output) ? 3 : 4;
+
+        if (countVertices == 3)
+        {
+            auto&& t = std::get<FltTriangle>(output);
+            for (int i = 0; i < 3; i++)
+                sidesBuffer[i * 2] = { FltLine{ t[i], t[(i + 1) % 3] }, false };
+        }
+        else
+        {
+            auto&& q = std::get<FltQuadrangle>(output);
+            for (int i = 0; i < 4; i++)
+                sidesBuffer[i * 2] = { FltLine{ q[i], q[(i + 1) % 4] }, false };
+        }
+
+        // Clip each side
+        for (int i = 0; i < countVertices; i++)
+        {
+            auto clippedLine = clipLine(x, y, width, height, { (*sidesBuffer[i * 2].first)[0], (*sidesBuffer[i * 2].first)[1] });
+            if (clippedLine)
+            {
+                sidesBuffer[i * 2] = { FltLine{ clippedLine->first, clippedLine->second }, false };
+            }
+            else
+            {
+                sidesBuffer[i * 2] = { std::nullopt, true };
+            }
+        }
+
+        // Returns 0 if should go lower direction 1 other
+        const auto calcContinueDirection = []()
+        {
+            // TODO
+        };
+
+        // Connect sides
+        // TODO
+
+        return std::nullopt;
     }
 }

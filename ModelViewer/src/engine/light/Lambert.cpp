@@ -15,7 +15,7 @@ namespace ModelViewer
             {
             }
 
-            Color Lambert::operator()(Color emissiveColor, Primitives::FltTriangle triangle) const
+            Color Lambert::operator()(Color emissiveColor, Primitives::FltTriangleRef triangle) const
             {
                 const auto polygonNormal = Primitives::calcTriangleNormal(triangle);
 

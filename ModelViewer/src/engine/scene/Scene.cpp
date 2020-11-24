@@ -83,7 +83,7 @@ namespace ModelViewer
                         size_t bInd = m_indices[i + 1] < 0 ? m_vertices.size() + m_indices[i + 1] : m_indices[i + 1] - 1;
                         size_t cInd = m_indices[i + 2] < 0 ? m_vertices.size() + m_indices[i + 2] : m_indices[i + 2] - 1;
 
-                        Engine::Primitives::FltTriangle triangle = {
+                        Engine::Primitives::FltTriangleRef triangle = {
                             std::cref(m_vertices[aInd]),
                             std::cref(m_vertices[bInd]),
                             std::cref(m_vertices[cInd])

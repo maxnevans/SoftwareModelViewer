@@ -274,6 +274,12 @@ namespace ModelViewer
             drawBetaPartTriangle(b, zB, c, zC, a, zA, alphaZDistance, totalHeight, alphaDistanceVec, color);
         }
 
+        void Rasterizer::drawQuadrangle(Vec3<double> a, Vec3<double> b, Vec3<double> c, Vec3<double> d, Color color)
+        {
+            drawTriangle(a, a[Z], b, b[Z], c, c[Z], color);
+            drawTriangle(a, a[Z], c, c[Z], d, d[Z], color);
+        }
+
         void Rasterizer::drawHorizontalLineUnsafe(const Vec2<int>& a, const Vec2<int>& b, Color color)
         {
             for (int x = a[X]; x < b[X]; x++)

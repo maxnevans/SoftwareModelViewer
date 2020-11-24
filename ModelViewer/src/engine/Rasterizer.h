@@ -30,6 +30,7 @@ namespace ModelViewer
             void drawHorizontalLine(Vec2<int>&& a, double zA, Vec2<int>&& b, double zB, Color&& color);
             void drawTriangle(Vec2<int> a, Vec2<int> b, Vec2<int> c, Color color);
             void drawTriangle(Vec2<int> a, double zA, Vec2<int> b, double zB, Vec2<int> c, double zC, Color color);
+            void drawQuadrangle(Vec3<double> a, Vec3<double> b, Vec3<double> c, Vec3<double> d, Color color);
             inline UINT getWidth() const
             {
                 return m_width;

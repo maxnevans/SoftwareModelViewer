@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <numeric>
 #include <execution>
+#include <variant>
 
 // Windows Header Files
 #include <windows.h>

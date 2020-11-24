@@ -75,7 +75,7 @@ namespace ModelViewer
             std::size_t aInd, std::size_t bInd, std::size_t cInd, std::reference_wrapper<const Vector3<int>> cameraVector,
             Engine::Color color)
         {
-            Engine::Primitives::FltTriangle triangle = {
+            Engine::Primitives::FltTriangleRef triangle = {
                 std::cref(ver.get()[aInd]),
                 std::cref(ver.get()[bInd]),
                 std::cref(ver.get()[cInd])

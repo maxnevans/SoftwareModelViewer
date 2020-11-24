@@ -211,7 +211,16 @@ namespace ModelViewer
     using Vector4 = Vector<T, 4>;
 
     template<typename T>
+    using Vec4 = Vector4<T>;
+
+    template<typename T>
     using Vector3 = Vector<T, 3>;
+
+    template<typename T>
+    using Vec3 = Vector3<T>;
+
+    template<typename T>
+    using Vector2 = Vector<T, 2>;
 
     template<typename T>
     using Vec2 = Vector<T, 2>;
