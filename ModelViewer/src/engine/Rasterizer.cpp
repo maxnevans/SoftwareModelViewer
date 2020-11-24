@@ -6,22 +6,26 @@ namespace ModelViewer
 {
     namespace Engine
     {
-
-        constexpr void expectPoint(int x, int y, int screenWidth, int screenHeight)
+        bool checkPoint(int x, int y, int screenWidth, int screenHeight)
         {
-            expect(x >= 0);
-            expect(x < screenWidth);
-            expect(y >= 0);
-            expect(y < screenHeight);
+            return x >= 0 && x < screenWidth && y >= 0 && y < screenWidth;
+        }
+
+        void expectPoint(int x, int y, int screenWidth, int screenHeight)
+        {
+            expect(checkPoint(x, y, screenWidth, screenHeight));
         }
 
         template<typename T>
-        constexpr void expectVec2(Vec2<T> vec, int screenWidth, int screenHeight)
+        bool checkVec2(Vec2<T> vec, int screenWidth, int screenHeight)
         {
-            expect(vec[0] >= 0);
-            expect(vec[0] < screenWidth);
-            expect(vec[1] >= 0);
-            expect(vec[1] < screenHeight);
+            return vec[0] >= 0 && vec[0] < screenWidth && vec[1] >= 0 && vec[1] < screenWidth;
+        }
+
+        template<typename T>
+        void expectVec2(Vec2<T> vec, int screenWidth, int screenHeight)
+        {
+            expect(checkVec2(vec, screenWidth, screenHeight));
         }
 
         Rasterizer::Rasterizer(int width, int height)
@@ -54,6 +58,9 @@ namespace ModelViewer
 
         void Rasterizer::drawPixel(int x, int y, double z, Color color)
         {
+            if (!checkPoint(x, y, m_width, m_height))
+                return;
+
             if (z <= 0)
                 return;
 
@@ -94,9 +101,6 @@ namespace ModelViewer
         {
             if (z1 <= 0 && z2 <= 0)
                 return;
-
-            expectPoint(x1, y1, m_width, m_height);
-            expectPoint(x2, y2, m_width, m_height);
 
             const int xDistance = std::abs(x1 - x2);
             const int yDistance = std::abs(y1 - y2);
@@ -141,19 +145,26 @@ namespace ModelViewer
 
         void Rasterizer::drawHorizontalLine(Vec2<int>&& a, Vec2<int>&& b, Color&& color)
         {
+            if (a[Y] < 0 || a[Y] >= m_height)
+                return;
+
             expectVec2(a, m_width, m_height);
             expectVec2(b, m_width, m_height);
+
+            expect(a[X] <= b[X]);
 
             drawHorizontalLineUnsafe(std::forward<Vec2<int>>(a), std::forward<Vec2<int>>(b), std::forward<Color>(color));
         }
 
         void Rasterizer::drawHorizontalLine(Vec2<int>&& a, double zA, Vec2<int>&& b, double zB, Color&& color)
         {
+            if (a[Y] < 0 || a[Y] >= m_height)
+                return;
+
             if (zA <= 0 && zB <= 0)
                 return;
 
-            expectVec2(a, m_width, m_height);
-            expectVec2(b, m_width, m_height);
+            expect(a[X] <= b[X]);
 
             drawHorizontalLineUnsafe(std::forward<Vec2<int>>(a), zA, std::forward<Vec2<int>>(b), zB, std::forward<Color>(color));
         }
@@ -208,11 +219,6 @@ namespace ModelViewer
         {
             if (zA <= 0 && zB <= 0 && zC <= 0)
                 return;
-
-            // Assertion for vieport bounds
-            expectVec2(a, m_width, m_height);
-            expectVec2(b, m_width, m_height);
-            expectVec2(c, m_width, m_height);
 
             // Don't care about 0 height triangle
             if (a[Y] == b[Y] && b[Y] == c[Y])
