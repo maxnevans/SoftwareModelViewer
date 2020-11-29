@@ -8,7 +8,7 @@ namespace ModelViewer
     {
         bool checkPoint(int x, int y, int screenWidth, int screenHeight)
         {
-            return x >= 0 && x < screenWidth && y >= 0 && y < screenWidth;
+            return x >= 0 && x < screenWidth && y >= 0 && y < screenHeight;
         }
 
         void expectPoint(int x, int y, int screenWidth, int screenHeight)
@@ -19,7 +19,7 @@ namespace ModelViewer
         template<typename T>
         bool checkVec2(Vec2<T> vec, int screenWidth, int screenHeight)
         {
-            return vec[0] >= 0 && vec[0] < screenWidth && vec[1] >= 0 && vec[1] < screenWidth;
+            return vec[0] >= 0 && vec[0] < screenWidth && vec[1] >= 0 && vec[1] < screenHeight;
         }
 
         template<typename T>
