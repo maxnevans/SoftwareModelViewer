@@ -30,7 +30,9 @@ namespace ModelViewer
 
                 for (int i = 0; i < 3; i++)
                 {
-                    const auto distanceSquared = (triangle[i].get() - m_position).lengthSquared();
+                    auto diffVec = triangle[i].get() - m_position;
+                    diffVec[3] = 0;
+                    const auto distanceSquared = diffVec.lengthSquared();
                     const auto distanceIntensityFactor = 1 / (1 + distanceSquared);
 
                     const auto generalFactor = distanceIntensityFactor * m_intensity * normalAngleFactor;
