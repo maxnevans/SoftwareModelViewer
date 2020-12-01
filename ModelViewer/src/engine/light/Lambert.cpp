@@ -15,6 +15,12 @@ namespace ModelViewer
             {
             }
 
+            unsigned char boundColorChannel(double newColorChannel)
+            {
+                return static_cast<unsigned char>((std::max)((std::min)(newColorChannel, static_cast<double>(Color::MAX)), 
+                    static_cast<double>(Color::MIN)));
+            }
+
             Color Lambert::operator()(Color emissiveColor, Primitives::FltTriangleRef triangle) const
             {
                 const auto polygonNormal = Primitives::calcTriangleNormal(triangle);
@@ -26,7 +32,7 @@ namespace ModelViewer
                 const auto cosAngle = polygonNormal.cos(m_position);
                 const auto normalAngleFactor = cosAngle > 0 ? cosAngle : 0;
 
-                Color color{};
+                double color[3]{};
 
                 for (int i = 0; i < 3; i++)
                 {
@@ -37,12 +43,19 @@ namespace ModelViewer
 
                     const auto generalFactor = distanceIntensityFactor * m_intensity * normalAngleFactor;
 
-                    color.r += static_cast<unsigned char>(m_color.r * redReflectionFactor * generalFactor / 3.0);
-                    color.g += static_cast<unsigned char>(m_color.g * redReflectionFactor * generalFactor / 3.0);
-                    color.b += static_cast<unsigned char>(m_color.b * redReflectionFactor * generalFactor / 3.0);
+                    color[0] += m_color.r * redReflectionFactor * generalFactor;
+                    color[1] += m_color.g * greenReflectionFactor * generalFactor;
+                    color[2] += m_color.b * blueReflectionFactor * generalFactor;
                 }
 
-                return color;
+                for (int i = 0; i < 3; i++)
+                    color[i] /= 3;
+
+                return {
+                    boundColorChannel(color[0]),
+                    boundColorChannel(color[1]),
+                    boundColorChannel(color[2]),
+                };
             }
         }
     }
