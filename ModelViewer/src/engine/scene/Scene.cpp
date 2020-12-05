@@ -52,11 +52,14 @@ namespace ModelViewer
                 for (const auto& object : m_Objects)
                 {
                     const auto& objVertices = object->getVertices();
+                    const auto& objTextureVertices = object->getTextureVertices();
                     const auto& objNormals = object->getNormals();
                     const auto& objIndices = object->getIndices();
+                    const auto& objColors = object->getColors();
 
                     m_vertices.resize(objVertices.size());
                     m_normals.resize(objNormals.size());
+                    m_textureVertices.resize(objTextureVertices.size());
                     m_indices.resize(objIndices.size());
                     m_colors.resize(objIndices.size());
 
@@ -70,6 +73,10 @@ namespace ModelViewer
                     for (std::size_t i = 0; i < objNormals.size(); i++)
                         m_normals[i] = objNormals[i];
 
+                    // Copy colors
+                    for (std::size_t i = 0; i < objColors.size(); i++)
+                        m_colors[i] = objColors[i];
+
                     // Copy indices
                     for (std::size_t i = 0; i < objIndices.size(); i++)
                         m_indices[i] = objIndices[i];
@@ -78,25 +85,6 @@ namespace ModelViewer
                     for (std::size_t i = 0; i < m_vertices.size(); i++)
                     {
                         m_vertices[i] = m * m_vertices[i];
-                    }
-
-                    // Light calculation
-                    for (std::size_t i = 0; i < m_indices.size(); i += 3)
-                    {
-                        expect(m_indices[i].vertex != 0 && m_indices[i + 1].vertex != 0 && m_indices[i + 2].vertex != 0);
-
-                        std::size_t aInd = m_indices[i].vertex;
-                        std::size_t bInd = m_indices[i + 1].vertex;
-                        std::size_t cInd = m_indices[i + 2].vertex;
-
-                        Engine::Primitives::FltTriangleRef triangle = {
-                            std::cref(m_vertices[aInd]),
-                            std::cref(m_vertices[bInd]),
-                            std::cref(m_vertices[cInd])
-                        };
-
-                        m_colors[i + 2] = m_colors[i + 1] = m_colors[i] =
-                            m_light({ 0xFF, 0xFF, 0xFF }, triangle);
                     }
 
                     // View Projective Viewport matrix applying and dividing by W
@@ -110,8 +98,10 @@ namespace ModelViewer
 
                 return {
                     std::cref(m_vertices), 
+                    std::cref(m_normals),
+                    std::cref(m_textureVertices),
                     std::cref(m_indices),
-                    std::cref(m_colors)
+                    std::cref(m_colors),
                 };
             }
         }

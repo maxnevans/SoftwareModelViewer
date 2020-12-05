@@ -51,7 +51,7 @@ namespace ModelViewer
 
     void ModelViewerApp::draw(Gdiplus::Graphics& gfx, const AdditionalDrawData& data)
     {
-        auto&& [verRef, indRef, colRef] = m_Scene->render(*m_Viewport);
+        auto&& [verRef, normalsRef, uvRef, indRef, colRef] = m_Scene->render(*m_Viewport);
         const auto& ver = verRef.get();
         const auto& ind = indRef.get();
         const auto& col = colRef.get();
@@ -103,7 +103,7 @@ namespace ModelViewer
             if (ver[aInd][2] <= 0 || ver[bInd][2] <= 0 || ver[cInd][3] <= 0)
                 continue;
 
-            Engine::Color color = col[i];
+            Engine::Color color = col[0];
 
 #if 0
             m_pool.enque(drawLine, std::cref(ver), aInd, bInd);

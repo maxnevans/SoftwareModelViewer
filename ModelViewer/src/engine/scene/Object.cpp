@@ -9,12 +9,15 @@ namespace ModelViewer
         namespace Scene
         {
             Object::Object(std::vector<Vec4<double>> vertices, std::vector<Vec3<double>> normals, 
-                std::vector<Vec3<double>> textureCoords, std::vector<Index> indices)
+                std::vector<Vec3<double>> textureCoords, std::vector<Index> indices, 
+                std::vector<Color> colors, ColorType colorType)
                 :
                 m_Vertices(vertices),
-                m_textureCoords(textureCoords),
+                m_textureVertices(textureCoords),
                 m_normals(normals),
                 m_Indices(indices),
+                m_colors(colors),
+                m_colorType(colorType),
                 m_TranslateVector({0,0,0}),
                 m_RotateVector({0,0,0}),
                 m_ScaleVector({1,1,1}),
@@ -27,9 +30,9 @@ namespace ModelViewer
                 return m_Vertices;
             }
 
-            const std::vector<Vec3<double>>& Object::getTextureCoords() const
+            const std::vector<Vec3<double>>& Object::getTextureVertices() const
             {
-                return m_textureCoords;
+                return m_textureVertices;
             }
 
             const std::vector<Vec3<double>>& Object::getNormals() const
@@ -40,6 +43,18 @@ namespace ModelViewer
             const std::vector<Index>& Object::getIndices() const
             {
                 return m_Indices;
+            }
+
+            const std::vector<Color>& Object::getColors() const
+            {
+                return m_colors;
+            }
+
+            void Object::setColor(Color color)
+            {
+                m_colorType = ColorType::SOLID;
+                m_colors.resize(1);
+                m_colors[0] = color;
             }
 
             const Matrix4<double>& Object::getMatrix() const
@@ -119,7 +134,8 @@ namespace ModelViewer
                 m_CacheModelMatrix = createModelMatrix(m_TranslateVector, m_RotateVector, m_ScaleVector);
             }
 
-            Matrix4<double> Object::createModelMatrix(const Vector4<double>& translate, const Vector4<double>& rotate, const Vector4<double>& scale) const
+            Matrix4<double> Object::createModelMatrix(const Vector4<double>& translate, 
+                const Vector4<double>& rotate, const Vector4<double>& scale) const
             {
                 auto ret = createTranslateMatrix(translate);
 

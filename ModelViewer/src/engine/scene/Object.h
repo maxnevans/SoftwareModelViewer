@@ -3,6 +3,7 @@
 #include "math/Vector.h"
 #include "math/Matrix.h"
 #include "engine/ObjectParser.h"
+#include "engine/Rasterizer.h"
 
 namespace ModelViewer
 {
@@ -13,12 +14,24 @@ namespace ModelViewer
             class Object
             {
             public:
+                enum class ColorType
+                {
+                    SOLID,
+                    PER_VERTEX,
+                    PER_POLYGON,
+                    PER_EDGE
+                };
+
+            public:
                 Object(std::vector<Vector4<double>> vertices, std::vector<Vec3<double>> textureCoords, 
-                    std::vector<Vec3<double>> normals, std::vector<Index> indices);
+                    std::vector<Vec3<double>> normals, std::vector<Index> indices, 
+                    std::vector<Color> colors = { {0xFF, 0xFF, 0xFF} }, ColorType colorType = ColorType::SOLID);
                 const std::vector<Vector4<double>>& getVertices() const;
-                const std::vector<Vec3<double>>& getTextureCoords() const;
+                const std::vector<Vec3<double>>& getTextureVertices() const;
                 const std::vector<Vec3<double>>& getNormals() const;
                 const std::vector<Index>& getIndices() const;
+                const std::vector<Color>& getColors() const;
+                void setColor(Color color);
                 const Matrix4<double>& getMatrix() const;
                 void scaleX(double amount);
                 void scaleY(double amount);
@@ -34,13 +47,17 @@ namespace ModelViewer
                 void rotate(Vector4<double> amount);
 
             private:
-                Matrix4<double> createModelMatrix(const Vector4<double>& translate, const Vector4<double>& rotate, const Vector4<double>& scale) const;
+                Matrix4<double> createModelMatrix(const Vector4<double>& translate, 
+                    const Vector4<double>& rotate, const Vector4<double>& scale) const;
 
             private:
                 std::vector<Vector4<double>> m_Vertices;
-                std::vector<Vec3<double>> m_textureCoords;
+                std::vector<Vec3<double>> m_textureVertices;
                 std::vector<Vec3<double>> m_normals;
                 std::vector<Index> m_Indices;
+                std::vector<Color> m_colors;
+                ColorType m_colorType;
+
                 Vector4<double> m_TranslateVector;
                 Vector4<double> m_RotateVector;
                 Vector4<double> m_ScaleVector;
