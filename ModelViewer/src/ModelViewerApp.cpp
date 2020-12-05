@@ -167,7 +167,8 @@ namespace ModelViewer
         Engine::ObjectParser parser(filename);
 
         auto object = parser.parse();
-        m_Model = std::make_shared<Engine::Scene::Object>(std::move(object.vertices), std::move(object.normals), std::move(object.indices));
+        m_Model = std::make_shared<Engine::Scene::Object>(std::move(object.vertices), 
+            std::move(object.textureVertices), std::move(object.normals), std::move(object.indices));
         m_Scene->addObject(m_Model);
 
         if (cb)

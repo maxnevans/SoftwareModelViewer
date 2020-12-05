@@ -13,8 +13,10 @@ namespace ModelViewer
             class Object
             {
             public:
-                Object(std::vector<Vector4<double>> vertices, std::vector<Vec3<double>> normals, std::vector<Index> indices);
+                Object(std::vector<Vector4<double>> vertices, std::vector<Vec3<double>> textureCoords, 
+                    std::vector<Vec3<double>> normals, std::vector<Index> indices);
                 const std::vector<Vector4<double>>& getVertices() const;
+                const std::vector<Vec3<double>>& getTextureCoords() const;
                 const std::vector<Vec3<double>>& getNormals() const;
                 const std::vector<Index>& getIndices() const;
                 const Matrix4<double>& getMatrix() const;
@@ -36,6 +38,7 @@ namespace ModelViewer
 
             private:
                 std::vector<Vector4<double>> m_Vertices;
+                std::vector<Vec3<double>> m_textureCoords;
                 std::vector<Vec3<double>> m_normals;
                 std::vector<Index> m_Indices;
                 Vector4<double> m_TranslateVector;

@@ -28,6 +28,10 @@ namespace ModelViewer
                 {
                     obj.normals.push_back(Vec3<double>(std::move(parseVN(line))));
                 } 
+                else if (std::wstring_view(line.c_str(), 3) == L"vt ")
+                {
+                    obj.textureVertices.push_back(Vec3<double>(std::move(parseVT(line))));
+                }
                 else if (std::wstring_view(line.c_str(), 2) == L"f ")
                 {
                     auto f = parseF(line);
@@ -37,7 +41,7 @@ namespace ModelViewer
                 }
             }
 
-            obj.indices = convertToUnsignedIndices(signedIndices, obj.vertices.size(), 0, obj.normals.size());
+            obj.indices = convertToUnsignedIndices(signedIndices, obj.vertices.size(), obj.textureVertices.size(), obj.normals.size());
 
             return obj;
         }
@@ -46,7 +50,7 @@ namespace ModelViewer
         {
             constexpr const size_t MAX_F_INDICES = 3;
             std::array<int, MAX_F_INDICES> f = {};
-            size_t offset = 0;
+            std::size_t offset = 0;
 
             for (size_t i = 0; i < MAX_F_INDICES - 1; i++)
             {
@@ -67,7 +71,7 @@ namespace ModelViewer
         std::vector<std::array<int, 3>> ObjectParser::parseF(const std::wstring& str) const
         {
             std::vector<std::array<int, 3>> f = {};
-            size_t offsetFromTheBeginingOfTheLine = 2;
+            std::size_t offsetFromTheBeginingOfTheLine = 2;
 
             // Skip spaces after "f ", prevent from parsing empty string
             while (offsetFromTheBeginingOfTheLine < str.size() && str[offsetFromTheBeginingOfTheLine] == L' ')
@@ -111,9 +115,9 @@ namespace ModelViewer
         Vec4<double> ObjectParser::parseV(const std::wstring& str)
         {
             constexpr int MAX_COUNT_COORDS = 4;
-            size_t offsetFromTheBeginingOfTheLine = 2;
+            std::size_t offsetFromTheBeginingOfTheLine = 2;
             Vec4<double> vertex({0.0, 0.0, 0.0, 1.0});
-            size_t countCoords = 0;
+            std::size_t countCoords = 0;
 
             // Skip spaces after "v ", prevent from parsing empty string
             while (offsetFromTheBeginingOfTheLine < str.size() && str[offsetFromTheBeginingOfTheLine] == L' ')
@@ -158,9 +162,9 @@ namespace ModelViewer
         Vec3<double> ObjectParser::parseVN(const std::wstring& str)
         {
             constexpr int MAX_COUNT_COORDS = 3;
-            size_t offsetFromTheBeginingOfTheLine = 3;
+            std::size_t offsetFromTheBeginingOfTheLine = 3;
             Vec3<double> normal{};
-            size_t countCoords = 0;
+            std::size_t countCoords = 0;
 
             // Skip spaces after "vn ", prevent from parsing empty string
             while (offsetFromTheBeginingOfTheLine < str.size() && str[offsetFromTheBeginingOfTheLine] == L' ')
@@ -200,6 +204,53 @@ namespace ModelViewer
             normal[countCoords] = std::stod(str.substr(offsetFromTheBeginingOfTheLine));
 
             return normal;
+        }
+
+        Vec3<double> ObjectParser::parseVT(const std::wstring& str)
+        {
+            constexpr int MAX_COUNT_COORDS = 3;
+            std::size_t offsetFromTheBeginingOfTheLine = 3;
+            Vec3<double> textureVertex{};
+            std::size_t countCoords = 0;
+
+            // Skip spaces after "vt ", prevent from parsing empty string
+            while (offsetFromTheBeginingOfTheLine < str.size() && str[offsetFromTheBeginingOfTheLine] == L' ')
+            {
+                offsetFromTheBeginingOfTheLine++;
+                if (offsetFromTheBeginingOfTheLine == str.size())
+                    offsetFromTheBeginingOfTheLine = std::wstring::npos;
+            }
+
+            if (offsetFromTheBeginingOfTheLine == std::wstring::npos)
+                return textureVertex;
+
+            for (int i = 0; i < MAX_COUNT_COORDS - 1; i++)
+            {
+                auto pos = str.find(L' ', offsetFromTheBeginingOfTheLine);
+
+                if (pos == std::wstring::npos)
+                    break;
+
+                // Skip spaces
+                while (pos + 1 < str.size() && str[pos + 1] == L' ')
+                {
+                    pos++;
+                    if (pos + 1 == str.size())
+                        pos = std::wstring::npos;
+                }
+
+                if (pos == std::wstring::npos)
+                    break;
+
+                textureVertex[i] = std::stod(str.substr(offsetFromTheBeginingOfTheLine, pos - offsetFromTheBeginingOfTheLine));
+
+                offsetFromTheBeginingOfTheLine = pos + 1;
+                countCoords++;
+            }
+
+            textureVertex[countCoords] = std::stod(str.substr(offsetFromTheBeginingOfTheLine));
+
+            return textureVertex;
         }
 
         std::vector<Index> ObjectParser::convertToUnsignedIndices(const std::vector<SignedIndex>& signedIndices,

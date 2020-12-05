@@ -8,9 +8,11 @@ namespace ModelViewer
     {
         namespace Scene
         {
-            Object::Object(std::vector<Vec4<double>> vertices, std::vector<Vec3<double>> normals, std::vector<Index> indices)
+            Object::Object(std::vector<Vec4<double>> vertices, std::vector<Vec3<double>> normals, 
+                std::vector<Vec3<double>> textureCoords, std::vector<Index> indices)
                 :
                 m_Vertices(vertices),
+                m_textureCoords(textureCoords),
                 m_normals(normals),
                 m_Indices(indices),
                 m_TranslateVector({0,0,0}),
@@ -23,6 +25,11 @@ namespace ModelViewer
             const std::vector<Vector4<double>>& Object::getVertices() const
             {
                 return m_Vertices;
+            }
+
+            const std::vector<Vec3<double>>& Object::getTextureCoords() const
+            {
+                return m_textureCoords;
             }
 
             const std::vector<Vec3<double>>& Object::getNormals() const
