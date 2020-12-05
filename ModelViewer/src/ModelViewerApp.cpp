@@ -96,9 +96,9 @@ namespace ModelViewer
         {
             expect(ind[i].vertex != 0 && ind[i + 1].vertex != 0 && ind[i + 2].vertex != 0);
 
-            size_t aInd = ind[i].vertex < 0 ? ver.size() + ind[i].vertex : ind[i].vertex - 1;
-            size_t bInd = ind[i + 1].vertex < 0 ? ver.size() + ind[i + 1].vertex : ind[i + 1].vertex - 1;
-            size_t cInd = ind[i + 2].vertex < 0 ? ver.size() + ind[i + 2].vertex : ind[i + 2].vertex - 1;
+            std::size_t aInd = ind[i].vertex;
+            std::size_t bInd = ind[i + 1].vertex;
+            std::size_t cInd = ind[i + 2].vertex;
 
             if (ver[aInd][2] <= 0 || ver[bInd][2] <= 0 || ver[cInd][3] <= 0)
                 continue;

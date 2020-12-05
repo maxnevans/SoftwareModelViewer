@@ -85,9 +85,9 @@ namespace ModelViewer
                     {
                         expect(m_indices[i].vertex != 0 && m_indices[i + 1].vertex != 0 && m_indices[i + 2].vertex != 0);
 
-                        size_t aInd = m_indices[i].vertex < 0 ? m_vertices.size() + m_indices[i].vertex : m_indices[i].vertex - 1;
-                        size_t bInd = m_indices[i + 1].vertex < 0 ? m_vertices.size() + m_indices[i + 1].vertex : m_indices[i + 1].vertex - 1;
-                        size_t cInd = m_indices[i + 2].vertex < 0 ? m_vertices.size() + m_indices[i + 2].vertex : m_indices[i + 2].vertex - 1;
+                        std::size_t aInd = m_indices[i].vertex;
+                        std::size_t bInd = m_indices[i + 1].vertex;
+                        std::size_t cInd = m_indices[i + 2].vertex;
 
                         Engine::Primitives::FltTriangleRef triangle = {
                             std::cref(m_vertices[aInd]),

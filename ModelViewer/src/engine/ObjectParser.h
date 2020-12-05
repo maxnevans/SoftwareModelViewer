@@ -6,12 +6,15 @@ namespace ModelViewer
 {
     namespace Engine
     {
-        struct Index
+        template<typename T>
+        struct IndexGeneric
         {
-            int vertex;
-            int texture;
-            int normal;
+            T vertex;
+            T texture;
+            T normal;
         };
+        using Index = IndexGeneric<std::size_t>;
+        using SignedIndex = IndexGeneric<int>;
 
         struct ParsedObject
         {
@@ -31,6 +34,8 @@ namespace ModelViewer
             std::vector<std::array<int, 3>> parseF(const std::wstring& str) const;
             Vec4<double> parseV(const std::wstring& str);
             Vec3<double> parseVN(const std::wstring& str);
+            std::vector<Index> convertToUnsignedIndices(const std::vector<SignedIndex>& signedIndices, 
+                std::size_t verticesCount, std::size_t textureVerticesCount, std::size_t normalsCount) const;
             
         private:
             std::wstring m_ObjFile;

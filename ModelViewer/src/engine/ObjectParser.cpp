@@ -16,27 +16,28 @@ namespace ModelViewer
         {
             std::wifstream in(m_ObjFile);
             ParsedObject obj = {};
+            std::vector<SignedIndex> signedIndices;
 
             for (std::wstring line; std::getline(in, line); )
             {
                 if (std::wstring_view(line.c_str(), 2) == L"v ")
                 {
                     obj.vertices.push_back(Vec4<double>(std::move(parseV(line))));
-                }
-
-                if (std::wstring_view(line.c_str(), 3) == L"vn ")
+                } 
+                else if (std::wstring_view(line.c_str(), 3) == L"vn ")
                 {
                     obj.normals.push_back(Vec3<double>(std::move(parseVN(line))));
-                }
-
-                if (std::wstring_view(line.c_str(), 2) == L"f ")
+                } 
+                else if (std::wstring_view(line.c_str(), 2) == L"f ")
                 {
                     auto f = parseF(line);
 
                     for (const auto& a: f)
-                        obj.indices.push_back({a[0], a[1], a[2]});
+                        signedIndices.push_back({a[0], a[1], a[2]});
                 }
             }
+
+            obj.indices = convertToUnsignedIndices(signedIndices, obj.vertices.size(), 0, obj.normals.size());
 
             return obj;
         }
@@ -199,6 +200,21 @@ namespace ModelViewer
             normal[countCoords] = std::stod(str.substr(offsetFromTheBeginingOfTheLine));
 
             return normal;
+        }
+
+        std::vector<Index> ObjectParser::convertToUnsignedIndices(const std::vector<SignedIndex>& signedIndices,
+            std::size_t verticesCount, std::size_t textureVerticesCount, std::size_t normalsCount) const
+        {
+            std::vector<Index> indices(signedIndices.size());
+
+            for (std::size_t i = 0; i < signedIndices.size(); i++)
+            {
+                indices[i].vertex = signedIndices[i].vertex < 0 ? verticesCount + signedIndices[i].vertex : signedIndices[i].vertex - 1;
+                indices[i].texture = signedIndices[i].texture < 0 ? textureVerticesCount + signedIndices[i].texture : signedIndices[i].texture - 1;
+                indices[i].normal = signedIndices[i].normal < 0 ? normalsCount + signedIndices[i].normal : signedIndices[i].normal - 1;
+            }
+
+            return indices;
         }
     }
 }
