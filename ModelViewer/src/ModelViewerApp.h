@@ -46,7 +46,6 @@ namespace ModelViewer
         std::shared_ptr<Engine::Scene::Camera> m_Camera = nullptr;
         std::shared_ptr<Engine::ParsedObject> m_ParsedObject = nullptr;
         Engine::Rasterizer m_rasterizer;
-        std::vector<std::optional<std::future<void>>> m_futures;
         std::mutex m_drawnLinesMutex;
         ThreadPool m_pool;
     };

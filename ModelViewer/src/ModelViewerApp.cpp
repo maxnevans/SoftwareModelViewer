@@ -94,11 +94,11 @@ namespace ModelViewer
 
         for (size_t i = 0; i < ind.size(); i += 3)
         {
-            expect(ind[i] != 0 && ind[i + 1] != 0 && ind[i + 2] != 0);
+            expect(ind[i].vertex != 0 && ind[i + 1].vertex != 0 && ind[i + 2].vertex != 0);
 
-            size_t aInd = ind[i] < 0 ? ver.size() + ind[i] : ind[i] - 1;
-            size_t bInd = ind[i + 1] < 0 ? ver.size() + ind[i + 1] : ind[i + 1] - 1;
-            size_t cInd = ind[i + 2] < 0 ? ver.size() + ind[i + 2] : ind[i + 2] - 1;
+            size_t aInd = ind[i].vertex < 0 ? ver.size() + ind[i].vertex : ind[i].vertex - 1;
+            size_t bInd = ind[i + 1].vertex < 0 ? ver.size() + ind[i + 1].vertex : ind[i + 1].vertex - 1;
+            size_t cInd = ind[i + 2].vertex < 0 ? ver.size() + ind[i + 2].vertex : ind[i + 2].vertex - 1;
 
             if (ver[aInd][2] <= 0 || ver[bInd][2] <= 0 || ver[cInd][3] <= 0)
                 continue;
@@ -167,8 +167,7 @@ namespace ModelViewer
         Engine::ObjectParser parser(filename);
 
         auto object = parser.parse();
-        m_Model = std::make_shared<Engine::Scene::Object>(std::move(object.vertices), std::move(object.indices));
-        m_futures.resize(m_Model->getIndices().size());
+        m_Model = std::make_shared<Engine::Scene::Object>(std::move(object.vertices), std::move(object.normals), std::move(object.indices));
         m_Scene->addObject(m_Model);
 
         if (cb)

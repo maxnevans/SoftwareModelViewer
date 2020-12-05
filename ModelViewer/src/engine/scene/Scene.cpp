@@ -31,6 +31,7 @@ namespace ModelViewer
                 m_Objects.push_back(object);
 
                 m_vertices.reserve(object->getVertices().size());
+                m_normals.reserve(object->getNormals().size());
                 m_indices.reserve(object->getIndices().size());
                 m_colors.reserve(object->getIndices().size());
             }
@@ -40,6 +41,7 @@ namespace ModelViewer
                 expect(m_CurrentActiveCamera);
 
                 m_vertices.clear();
+                m_normals.clear();
                 m_indices.clear();
                 m_colors.clear();
 
@@ -50,23 +52,27 @@ namespace ModelViewer
                 for (const auto& object : m_Objects)
                 {
                     const auto& objVertices = object->getVertices();
+                    const auto& objNormals = object->getNormals();
                     const auto& objIndices = object->getIndices();
 
                     m_vertices.resize(objVertices.size());
+                    m_normals.resize(objNormals.size());
                     m_indices.resize(objIndices.size());
                     m_colors.resize(objIndices.size());
 
                     const auto& m = object->getMatrix();
 
+                    // Copy vertices
+                    for (std::size_t i = 0; i < objVertices.size(); i++)
+                        m_vertices[i] = objVertices[i];
+
+                    // Copy normals
+                    for (std::size_t i = 0; i < objNormals.size(); i++)
+                        m_normals[i] = objNormals[i];
+
                     // Copy indices
                     for (std::size_t i = 0; i < objIndices.size(); i++)
                         m_indices[i] = objIndices[i];
-
-                    // Copy vertices
-                    for (std::size_t i = 0; i < objVertices.size(); i++)
-                    {
-                        m_vertices[i] = objVertices[i];
-                    }
 
                     // Model matrix applying
                     for (std::size_t i = 0; i < m_vertices.size(); i++)
@@ -77,11 +83,11 @@ namespace ModelViewer
                     // Light calculation
                     for (std::size_t i = 0; i < m_indices.size(); i += 3)
                     {
-                        expect(m_indices[i] != 0 && m_indices[i + 1] != 0 && m_indices[i + 2] != 0);
+                        expect(m_indices[i].vertex != 0 && m_indices[i + 1].vertex != 0 && m_indices[i + 2].vertex != 0);
 
-                        size_t aInd = m_indices[i] < 0 ? m_vertices.size() + m_indices[i] : m_indices[i] - 1;
-                        size_t bInd = m_indices[i + 1] < 0 ? m_vertices.size() + m_indices[i + 1] : m_indices[i + 1] - 1;
-                        size_t cInd = m_indices[i + 2] < 0 ? m_vertices.size() + m_indices[i + 2] : m_indices[i + 2] - 1;
+                        size_t aInd = m_indices[i].vertex < 0 ? m_vertices.size() + m_indices[i].vertex : m_indices[i].vertex - 1;
+                        size_t bInd = m_indices[i + 1].vertex < 0 ? m_vertices.size() + m_indices[i + 1].vertex : m_indices[i + 1].vertex - 1;
+                        size_t cInd = m_indices[i + 2].vertex < 0 ? m_vertices.size() + m_indices[i + 2].vertex : m_indices[i + 2].vertex - 1;
 
                         Engine::Primitives::FltTriangleRef triangle = {
                             std::cref(m_vertices[aInd]),

@@ -8,9 +8,10 @@ namespace ModelViewer
     {
         namespace Scene
         {
-            Object::Object(std::vector<Vector4<double>> vertices, std::vector<int> indices)
+            Object::Object(std::vector<Vec4<double>> vertices, std::vector<Vec3<double>> normals, std::vector<Index> indices)
                 :
                 m_Vertices(vertices),
+                m_normals(normals),
                 m_Indices(indices),
                 m_TranslateVector({0,0,0}),
                 m_RotateVector({0,0,0}),
@@ -24,7 +25,12 @@ namespace ModelViewer
                 return m_Vertices;
             }
 
-            const std::vector<int>& Object::getIndices() const
+            const std::vector<Vec3<double>>& Object::getNormals() const
+            {
+                return m_normals;
+            }
+
+            const std::vector<Index>& Object::getIndices() const
             {
                 return m_Indices;
             }

@@ -1,0 +1,40 @@
+#pragma once
+#include "engine/Rasterizer.h"
+#include "math/Vector.h"
+#include "engine/Primitives.h"
+
+namespace ModelViewer
+{
+    namespace Engine
+    {
+        namespace Light
+        {
+            struct AmbientLight
+            {
+                Color color;
+                double intensity;
+            };
+
+            struct DirectionalLight
+            {
+                Vector3<double> direction;
+                Color color;
+                double intensity;
+            };
+
+            using TriangleColorCalculator = std::function<Color(const Vec4<double>&, Color)>;
+
+            class Phong
+            {
+            public:
+                Phong(AmbientLight ambientLight, DirectionalLight directionalLight);
+                TriangleColorCalculator createTriangleLightCalculator(Primitives::FltTriangleRef triangleVertices,
+                    Primitives::FltTriangleRef triangleNormals) const;
+
+            private:
+                AmbientLight m_ambient;
+                DirectionalLight m_directional;
+            };
+        }
+    }
+}

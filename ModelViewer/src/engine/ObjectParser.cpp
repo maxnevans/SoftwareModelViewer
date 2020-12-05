@@ -15,14 +15,18 @@ namespace ModelViewer
         ParsedObject ObjectParser::parse()
         {
             std::wifstream in(m_ObjFile);
-            int currentObjectIndex = -1;
             ParsedObject obj = {};
 
             for (std::wstring line; std::getline(in, line); )
             {
                 if (std::wstring_view(line.c_str(), 2) == L"v ")
                 {
-                    obj.vertices.push_back(Vector4<double>(std::move(parseV(line))));
+                    obj.vertices.push_back(Vec4<double>(std::move(parseV(line))));
+                }
+
+                if (std::wstring_view(line.c_str(), 3) == L"vn ")
+                {
+                    obj.normals.push_back(Vec3<double>(std::move(parseVN(line))));
                 }
 
                 if (std::wstring_view(line.c_str(), 2) == L"f ")
@@ -30,7 +34,7 @@ namespace ModelViewer
                     auto f = parseF(line);
 
                     for (const auto& a: f)
-                        obj.indices.push_back(a[0]);
+                        obj.indices.push_back({a[0], a[1], a[2]});
                 }
             }
 
@@ -62,47 +66,139 @@ namespace ModelViewer
         std::vector<std::array<int, 3>> ObjectParser::parseF(const std::wstring& str) const
         {
             std::vector<std::array<int, 3>> f = {};
-            size_t offset = 2;
+            size_t offsetFromTheBeginingOfTheLine = 2;
+
+            // Skip spaces after "f ", prevent from parsing empty string
+            while (offsetFromTheBeginingOfTheLine < str.size() && str[offsetFromTheBeginingOfTheLine] == L' ')
+            {
+                offsetFromTheBeginingOfTheLine++;
+                if (offsetFromTheBeginingOfTheLine == str.size())
+                    offsetFromTheBeginingOfTheLine = std::wstring::npos;
+            }
+
+            if (offsetFromTheBeginingOfTheLine == std::wstring::npos)
+                return f;
 
             while (true)
             {
-                auto pos = str.find(L' ', offset);
+                auto pos = str.find(L' ', offsetFromTheBeginingOfTheLine);
 
                 if (pos == std::wstring::npos)
                     break;
 
-                f.push_back(parseFSingle(str.substr(offset, pos - offset)));
+                // Skip spaces
+                while (pos + 1 < str.size() && str[pos + 1] == L' ')
+                {
+                    pos++;
+                    if (pos + 1 == str.size())
+                        pos = std::wstring::npos;
+                }
 
-                offset = pos + 1;
+                if (pos == std::wstring::npos)
+                    break;
+
+                f.push_back(parseFSingle(str.substr(offsetFromTheBeginingOfTheLine, pos - offsetFromTheBeginingOfTheLine)));
+
+                offsetFromTheBeginingOfTheLine = pos + 1;
             }
 
-            f.push_back(parseFSingle(str.substr(offset)));
+            f.push_back(parseFSingle(str.substr(offsetFromTheBeginingOfTheLine)));
 
             return f;
         }
 
-        Vector4<double> ObjectParser::parseV(const std::wstring& str)
+        Vec4<double> ObjectParser::parseV(const std::wstring& str)
         {
-            size_t offset = 2;
-            Vector4<double> vertices({0.0, 0.0, 0.0, 1.0});
-            size_t countVertices = 0;
+            constexpr int MAX_COUNT_COORDS = 4;
+            size_t offsetFromTheBeginingOfTheLine = 2;
+            Vec4<double> vertex({0.0, 0.0, 0.0, 1.0});
+            size_t countCoords = 0;
 
-            for (int i = 0; i < 3; i++)
+            // Skip spaces after "v ", prevent from parsing empty string
+            while (offsetFromTheBeginingOfTheLine < str.size() && str[offsetFromTheBeginingOfTheLine] == L' ')
             {
-                auto pos = str.find(L' ', offset);
+                offsetFromTheBeginingOfTheLine++;
+                if (offsetFromTheBeginingOfTheLine == str.size())
+                    offsetFromTheBeginingOfTheLine = std::wstring::npos;
+            }
+
+            if (offsetFromTheBeginingOfTheLine == std::wstring::npos)
+                return vertex;
+
+            for (int i = 0; i < MAX_COUNT_COORDS - 1; i++)
+            {
+                auto pos = str.find(L' ', offsetFromTheBeginingOfTheLine);
 
                 if (pos == std::wstring::npos)
                     break;
 
-                vertices[i] = std::stod(str.substr(offset, pos - offset));
+                // Skip spaces
+                while (pos + 1 < str.size() && str[pos + 1] == L' ')
+                {
+                    pos++;
+                    if (pos + 1 == str.size())
+                        pos = std::wstring::npos;
+                }
 
-                offset = pos + 1;
-                countVertices++;
+                if (pos == std::wstring::npos)
+                    break;
+
+                vertex[i] = std::stod(str.substr(offsetFromTheBeginingOfTheLine, pos - offsetFromTheBeginingOfTheLine));
+
+                offsetFromTheBeginingOfTheLine = pos + 1;
+                countCoords++;
             }
 
-            vertices[countVertices] = std::stod(str.substr(offset));
+            vertex[countCoords] = std::stod(str.substr(offsetFromTheBeginingOfTheLine));
 
-            return vertices;
+            return vertex;
+        }
+
+        Vec3<double> ObjectParser::parseVN(const std::wstring& str)
+        {
+            constexpr int MAX_COUNT_COORDS = 3;
+            size_t offsetFromTheBeginingOfTheLine = 3;
+            Vec3<double> normal{};
+            size_t countCoords = 0;
+
+            // Skip spaces after "vn ", prevent from parsing empty string
+            while (offsetFromTheBeginingOfTheLine < str.size() && str[offsetFromTheBeginingOfTheLine] == L' ')
+            {
+                offsetFromTheBeginingOfTheLine++;
+                if (offsetFromTheBeginingOfTheLine == str.size())
+                    offsetFromTheBeginingOfTheLine = std::wstring::npos;
+            }
+
+            if (offsetFromTheBeginingOfTheLine == std::wstring::npos)
+                return normal;
+
+            for (int i = 0; i < MAX_COUNT_COORDS - 1; i++)
+            {
+                auto pos = str.find(L' ', offsetFromTheBeginingOfTheLine);
+
+                if (pos == std::wstring::npos)
+                    break;
+
+                // Skip spaces
+                while (pos + 1 < str.size() && str[pos + 1] == L' ')
+                {
+                    pos++;
+                    if (pos + 1 == str.size())
+                        pos = std::wstring::npos;
+                }
+
+                if (pos == std::wstring::npos)
+                    break;
+
+                normal[i] = std::stod(str.substr(offsetFromTheBeginingOfTheLine, pos - offsetFromTheBeginingOfTheLine));
+
+                offsetFromTheBeginingOfTheLine = pos + 1;
+                countCoords++;
+            }
+
+            normal[countCoords] = std::stod(str.substr(offsetFromTheBeginingOfTheLine));
+
+            return normal;
         }
     }
 }

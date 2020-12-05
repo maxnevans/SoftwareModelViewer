@@ -12,6 +12,14 @@ namespace ModelViewer
             const Matrix4<double>& getMatrix();
             void setDimensions(int width, int height);
             void setAnchorPoint(int x, int y);
+            inline int getWidth() const
+            {
+                return m_width;
+            }
+            inline int getHeight() const
+            {
+                return m_height;
+            }
 
         private:
             Matrix4<double> createViewportMatrix(int x, int y, int width, int height) const;

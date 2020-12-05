@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\engine\light\Phong.cpp" />
     <ClCompile Include="src\engine\light\Lambert.cpp" />
     <ClCompile Include="src\engine\ObjectParser.cpp" />
     <ClCompile Include="src\engine\Rasterizer.cpp" />
@@ -39,6 +40,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\engine\light\Phong.h" />
     <ClInclude Include="src\Core.h" />
     <ClInclude Include="src\engine\light\Lambert.h" />
     <ClInclude Include="src\engine\Pipeline.h" />
