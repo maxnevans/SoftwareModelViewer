@@ -21,7 +21,8 @@ namespace ModelViewer
                 m_TranslateVector({0,0,0}),
                 m_RotateVector({0,0,0}),
                 m_ScaleVector({1,1,1}),
-                m_CacheModelMatrix(createModelMatrix(m_TranslateVector, m_RotateVector, m_ScaleVector))
+                m_CacheModelMatrix(createModelMatrix(m_TranslateVector, m_RotateVector, m_ScaleVector)),
+                m_CacheNormalModelMatrix(m_CacheModelMatrix.inverse().transpose())
             {
             }
 
@@ -62,76 +63,81 @@ namespace ModelViewer
                 return m_CacheModelMatrix;
             }
 
+            const Matrix4<double>& Object::getNormalMatrix() const
+            {
+                return m_CacheNormalModelMatrix;
+            }
+
             void Object::scaleX(double amount)
             {
                 m_ScaleVector[0] = amount;
-                m_CacheModelMatrix = createModelMatrix(m_TranslateVector, m_RotateVector, m_ScaleVector);
+                updateCachedModelMatrices();
             }
 
             void Object::scaleY(double amount)
             {
                 m_ScaleVector[1] = amount;
-                m_CacheModelMatrix = createModelMatrix(m_TranslateVector, m_RotateVector, m_ScaleVector);
+                updateCachedModelMatrices();
             }
 
             void Object::scaleZ(double amount)
             {
                 m_ScaleVector[2] = amount;
-                m_CacheModelMatrix = createModelMatrix(m_TranslateVector, m_RotateVector, m_ScaleVector);
+                updateCachedModelMatrices();
             }
 
             void Object::scale(Vector4<double> amount)
             {
                 m_ScaleVector = amount;
-                m_CacheModelMatrix = createModelMatrix(m_TranslateVector, m_RotateVector, m_ScaleVector);
+                updateCachedModelMatrices();
             }
 
             void Object::translateX(double amount)
             {
                 m_TranslateVector[0] = amount;
-                m_CacheModelMatrix = createModelMatrix(m_TranslateVector, m_RotateVector, m_ScaleVector);
+                updateCachedModelMatrices();
             }
 
             void Object::translateY(double amount)
             {
                 m_TranslateVector[1] = amount;
-                m_CacheModelMatrix = createModelMatrix(m_TranslateVector, m_RotateVector, m_ScaleVector);
+                updateCachedModelMatrices();
             }
 
             void Object::translateZ(double amount)
             {
                 m_TranslateVector[2] = amount;
-                m_CacheModelMatrix = createModelMatrix(m_TranslateVector, m_RotateVector, m_ScaleVector);
+                updateCachedModelMatrices();
             }
 
             void Object::translate(Vector4<double> amount)
             {
                 m_TranslateVector = amount;
-                m_CacheModelMatrix = createModelMatrix(m_TranslateVector, m_RotateVector, m_ScaleVector);
+                updateCachedModelMatrices();
             }
 
             void Object::rotateX(double amount)
             {
                 m_RotateVector[0] = amount;
-                m_CacheModelMatrix = createModelMatrix(m_TranslateVector, m_RotateVector, m_ScaleVector);
+                updateCachedModelMatrices();
             }
 
             void Object::rotateY(double amount)
             {
                 m_RotateVector[1] = amount;
-                m_CacheModelMatrix = createModelMatrix(m_TranslateVector, m_RotateVector, m_ScaleVector);
+                updateCachedModelMatrices();
             }
 
             void Object::rotateZ(double amount)
             {
                 m_RotateVector[2] = amount;
-                m_CacheModelMatrix = createModelMatrix(m_TranslateVector, m_RotateVector, m_ScaleVector);
+                updateCachedModelMatrices();
             }
 
             void Object::rotate(Vector4<double> amount)
             {
                 m_RotateVector = amount;
-                m_CacheModelMatrix = createModelMatrix(m_TranslateVector, m_RotateVector, m_ScaleVector);
+                updateCachedModelMatrices();
             }
 
             Matrix4<double> Object::createModelMatrix(const Vector4<double>& translate, 
@@ -151,6 +157,12 @@ namespace ModelViewer
                 ret *= createScaleMatrix(scale);
 
                 return ret;
+            }
+
+            void Object::updateCachedModelMatrices()
+            {
+                m_CacheModelMatrix = createModelMatrix(m_TranslateVector, m_RotateVector, m_ScaleVector);
+                m_CacheNormalModelMatrix = m_CacheModelMatrix.inverse().transpose();
             }
         }
     }

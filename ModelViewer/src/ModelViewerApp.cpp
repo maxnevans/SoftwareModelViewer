@@ -7,6 +7,7 @@
 #include "engine/scene/Camera.h"
 #include "engine/scene/Scene.h"
 #include "engine/Primitives.h"
+#include "engine/ObjectParser.h"
 
 #define M_PI 3.14159265358979323846
 
@@ -51,10 +52,13 @@ namespace ModelViewer
 
     void ModelViewerApp::draw(Gdiplus::Graphics& gfx, const AdditionalDrawData& data)
     {
-        auto&& [verRef, normalsRef, uvRef, indRef, colRef] = m_Scene->render(*m_Viewport);
-        const auto& ver = verRef.get();
-        const auto& ind = indRef.get();
-        const auto& col = colRef.get();
+        auto&& [verRef, verticesWorldRef, normalsRef, uvsRef, indRef, colRef] = m_Scene->render(*m_Viewport);
+        const auto& vertices = verRef.get();
+        const auto& verticesWorld = verticesWorldRef.get();
+        const auto& normals = normalsRef.get();
+        const auto& uvs = uvsRef.get();
+        const auto& indices = indRef.get();
+        const auto& colors = colRef.get();
 
         const auto drawLine = [this, &data](std::reference_wrapper<const std::vector<Vector4<double>>> ver, std::size_t aInd, std::size_t bInd)
         {
@@ -71,20 +75,30 @@ namespace ModelViewer
             }
         };
 
-        const auto drawTriangle = [this, &data](std::reference_wrapper<const std::vector<Vector4<double>>> ver,
-            std::size_t aInd, std::size_t bInd, std::size_t cInd, std::reference_wrapper<const Vector3<int>> cameraVector,
+        const auto drawTriangle = [this, &data](std::reference_wrapper<const std::vector<Vec4<double>>> ver,
+            std::reference_wrapper<const std::vector<Vec4<double>>> verticesWorld,
+            std::reference_wrapper<const std::vector<Vec3<double>>> normals, 
+            std::reference_wrapper<const std::vector<Vec3<double>>> uvs,
+            std::reference_wrapper<const std::vector<Engine::Index>> indices, std::size_t indexSelector, 
+            std::reference_wrapper<const Vector3<int>> cameraVector,
             Engine::Color color)
         {
+            Engine::Index aInd = indices.get()[indexSelector];
+            Engine::Index bInd = indices.get()[indexSelector + 1];
+            Engine::Index cInd = indices.get()[indexSelector + 2];
+
             Engine::Primitives::FltTriangleRef triangle = {
-                std::cref(ver.get()[aInd]),
-                std::cref(ver.get()[bInd]),
-                std::cref(ver.get()[cInd])
+                std::cref(ver.get()[aInd.vertex]),
+                std::cref(ver.get()[bInd.vertex]),
+                std::cref(ver.get()[cInd.vertex])
             };
 
             if (Engine::Primitives::isTriangleTowardsCamera(cameraVector.get(), triangle))
             {
-                m_rasterizer.drawTriangle(ver.get()[aInd], ver.get()[aInd][Z], ver.get()[bInd], ver.get()[bInd][Z], 
-                    ver.get()[cInd], ver.get()[cInd][Z], color);
+                m_rasterizer.drawTriangle(ver.get()[aInd.vertex], ver.get()[aInd.vertex][Z], normals.get()[aInd.normal], verticesWorld.get()[aInd.vertex],
+                    ver.get()[bInd.vertex], ver.get()[bInd.vertex][Z], normals.get()[bInd.normal], verticesWorld.get()[bInd.vertex],
+                    ver.get()[cInd.vertex], ver.get()[cInd.vertex][Z], normals.get()[cInd.normal], verticesWorld.get()[cInd.vertex],
+                    color);
             }
         };
 
@@ -92,26 +106,24 @@ namespace ModelViewer
 
         m_rasterizer.begin();
 
-        for (size_t i = 0; i < ind.size(); i += 3)
+        for (size_t i = 0; i < indices.size(); i += 3)
         {
-            expect(ind[i].vertex != 0 && ind[i + 1].vertex != 0 && ind[i + 2].vertex != 0);
+            std::size_t aInd = indices[i].vertex;
+            std::size_t bInd = indices[i + 1].vertex;
+            std::size_t cInd = indices[i + 2].vertex;
 
-            std::size_t aInd = ind[i].vertex;
-            std::size_t bInd = ind[i + 1].vertex;
-            std::size_t cInd = ind[i + 2].vertex;
-
-            if (ver[aInd][2] <= 0 || ver[bInd][2] <= 0 || ver[cInd][3] <= 0)
+            if (vertices[aInd][Z] <= 0 || vertices[bInd][Z] <= 0 || vertices[cInd][Z] <= 0)
                 continue;
 
-            Engine::Color color = col[0];
+            Engine::Color color = colors[0];
 
 #if 0
             m_pool.enque(drawLine, std::cref(ver), aInd, bInd);
             m_pool.enque(drawLine, std::cref(ver), bInd, cInd);
             m_pool.enque(drawLine, std::cref(ver), cInd, aInd);
 #elif 1
-            //drawTriangle(std::cref(ver), aInd, bInd, cInd, std::cref(cameraVector), color);
-            m_pool.enque(drawTriangle, std::cref(ver), aInd, bInd, cInd, std::cref(cameraVector), color);
+            //drawTriangle(verRef, verticesWorld, normalsRef, uvsRef, indRef, i, std::cref(cameraVector), color);
+            m_pool.enque(drawTriangle, verRef, verticesWorld, normalsRef, uvsRef, indRef, i, std::cref(cameraVector), color);
 
 #endif
         }
@@ -167,8 +179,8 @@ namespace ModelViewer
         Engine::ObjectParser parser(filename);
 
         auto object = parser.parse();
-        m_Model = std::make_shared<Engine::Scene::Object>(std::move(object.vertices), 
-            std::move(object.textureVertices), std::move(object.normals), std::move(object.indices));
+        m_Model = std::make_shared<Engine::Scene::Object>(std::move(object.vertices), std::move(object.normals),
+            std::move(object.textureVertices), std::move(object.indices));
         m_Scene->addObject(m_Model);
 
         if (cb)

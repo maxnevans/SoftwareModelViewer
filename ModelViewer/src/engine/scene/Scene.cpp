@@ -31,6 +31,7 @@ namespace ModelViewer
                 m_Objects.push_back(object);
 
                 m_vertices.reserve(object->getVertices().size());
+                m_verticesWorld.reserve(object->getVertices().size());
                 m_normals.reserve(object->getNormals().size());
                 m_indices.reserve(object->getIndices().size());
                 m_colors.reserve(object->getIndices().size());
@@ -41,6 +42,7 @@ namespace ModelViewer
                 expect(m_CurrentActiveCamera);
 
                 m_vertices.clear();
+                m_verticesWorld.clear();
                 m_normals.clear();
                 m_indices.clear();
                 m_colors.clear();
@@ -48,6 +50,7 @@ namespace ModelViewer
                 const auto vpv = vp.getMatrix() 
                     * m_CurrentActiveCamera->getProjectionMatrix() 
                     * m_CurrentActiveCamera->getViewMatrix();
+                const auto& v = m_CurrentActiveCamera->getViewMatrix();
 
                 for (const auto& object : m_Objects)
                 {
@@ -58,12 +61,14 @@ namespace ModelViewer
                     const auto& objColors = object->getColors();
 
                     m_vertices.resize(objVertices.size());
+                    m_verticesWorld.resize(objVertices.size());
                     m_normals.resize(objNormals.size());
                     m_textureVertices.resize(objTextureVertices.size());
                     m_indices.resize(objIndices.size());
                     m_colors.resize(objIndices.size());
 
                     const auto& m = object->getMatrix();
+                    const Mat3<double> mNormal = static_cast<Mat3<double>>(object->getNormalMatrix());
 
                     // Copy vertices
                     for (std::size_t i = 0; i < objVertices.size(); i++)
@@ -85,7 +90,12 @@ namespace ModelViewer
                     for (std::size_t i = 0; i < m_vertices.size(); i++)
                     {
                         m_vertices[i] = m * m_vertices[i];
+                        m_verticesWorld[i] = m_vertices[i];
                     }
+
+                    // Model matrix applying for normals
+                    for (std::size_t i = 0; i < m_normals.size(); i++)
+                        m_normals[i] = mNormal * m_normals[i];
 
                     // View Projective Viewport matrix applying and dividing by W
                     for (std::size_t i = 0; i < m_vertices.size(); i++)
@@ -98,6 +108,7 @@ namespace ModelViewer
 
                 return {
                     std::cref(m_vertices), 
+                    std::cref(m_verticesWorld), 
                     std::cref(m_normals),
                     std::cref(m_textureVertices),
                     std::cref(m_indices),

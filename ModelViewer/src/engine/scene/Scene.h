@@ -14,6 +14,7 @@ namespace ModelViewer
             struct RenderResult
             {
                 std::reference_wrapper<const std::vector<Vec4<double>>> ver;
+                std::reference_wrapper<const std::vector<Vec4<double>>> verticesWorld;
                 std::reference_wrapper<const std::vector<Vec3<double>>> normals;
                 std::reference_wrapper<const std::vector<Vec3<double>>> uv;
                 std::reference_wrapper<const std::vector<Index>> ind;
@@ -33,6 +34,7 @@ namespace ModelViewer
                 std::shared_ptr<Camera> m_CurrentActiveCamera;
                 std::vector<std::shared_ptr<Object>> m_Objects;
                 std::vector<Vector4<double>> m_vertices;
+                std::vector<Vector4<double>> m_verticesWorld;
                 std::vector<Vec3<double>> m_textureVertices;
                 std::vector<Vec3<double>> m_normals;
                 std::vector<Index> m_indices;

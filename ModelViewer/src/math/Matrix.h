@@ -131,20 +131,166 @@ namespace ModelViewer
             return *this += -number;
         }
 
-        template<typename E>
-        operator Matrix<E, Size>() const
+        template<typename E, std::size_t NewSize>
+        operator Matrix<E, NewSize>() const
         {
-            std::array<E, Size * Size> copy;
-            for (int i = 0; i < Size * Size; i++)
-                copy[i] = static_cast<E>(m_data[i]);
+            Matrix<E, NewSize> matrix;
 
-            return Matrix<E, Size>(std::move(copy));
+            if (Size < NewSize)
+            {
+                for (std::size_t i = 0; i < Size; i++)
+                    for (std::size_t j = 0; j < Size; j++)
+                        matrix(i, j) = static_cast<E>((*this)(i, j));
+            }
+            else
+            {
+                for (int i = 0; i < NewSize; i++)
+                    for (int j = 0; j < NewSize; j++)
+                        matrix(i, j) = static_cast<E>((*this)(i, j));
+            }
+            
+            return matrix;
+        }
+
+        // Function to calculate and store inverse, returns false if 
+        // matrix is singular 
+        Matrix inverse() const
+        {
+            Matrix inverse;
+
+            T A[Size][Size];
+
+            for (std::size_t i = 0; i < Size; i++)
+                for (std::size_t j = 0; j < Size; j++)
+                    A[i][j] = (*this)(i, j);
+
+            // Find determinant of A[][] 
+            T det = determinant(A, Size);
+            if (det == 0)
+                throw std::exception("could not find inverse matrix: determinant is zero");
+            
+            // Find adjoint 
+            T adj[Size][Size];
+            adjoint(A, adj);
+
+            // Find Inverse using formula "inverse(A) = adj(A)/det(A)" 
+            for (std::size_t i = 0; i < Size; i++)
+                for (std::size_t j = 0; j < Size; j++)
+                    inverse(i, j) = static_cast<T>(adj[i][j] / static_cast<double>(det));
+
+            return inverse;
+        }
+
+        Matrix transpose() const noexcept
+        {
+            Matrix t;
+
+            for (std::size_t i = 0; i < Size; i++)
+                for (std::size_t j = 0; j < Size; j++)
+                    t(j, i) = (*this)(i, j);
+
+            return t;
+        }
+
+    private:
+        void getCofactor(T A[Size][Size], T temp[Size][Size], std::size_t p, std::size_t q, std::size_t n) const
+        {
+            int i = 0, j = 0;
+
+            // Looping for each element of the matrix 
+            for (std::size_t row = 0; row < n; row++)
+            {
+                for (std::size_t col = 0; col < n; col++)
+                {
+                    //  Copying into temporary matrix only those element 
+                    //  which are not in given row and column 
+                    if (row != p && col != q)
+                    {
+                        temp[i][j++] = A[row][col];
+
+                        // Row is filled, so increase row index and 
+                        // reset col index 
+                        if (j == n - 1)
+                        {
+                            j = 0;
+                            i++;
+                        }
+                    }
+                }
+            }
+        }
+
+        /* Recursive function for finding determinant of matrix.
+           n is current dimension of A[][]. */
+        T determinant(T A[Size][Size], std::size_t n) const
+        {
+            T D = 0; // Initialize result 
+
+            //  Base case : if matrix contains single element 
+            if (n == 1)
+                return A[0][0];
+
+            T temp[Size][Size]; // To store cofactors 
+
+            T sign = 1;  // To store sign multiplier 
+
+            // Iterate for each element of first row 
+            for (std::size_t f = 0; f < n; f++)
+            {
+                // Getting Cofactor of A[0][f] 
+                getCofactor(A, temp, 0, f, n);
+                D += sign * A[0][f] * determinant(temp, n - 1);
+
+                // terms are to be added with alternate sign 
+                sign = -sign;
+            }
+
+            return D;
+        }
+
+        // Function to get adjoint of A[N][N] in adj[N][N]. 
+        void adjoint(T A[Size][Size], T adj[Size][Size]) const
+        {
+            if (Size == 1)
+            {
+                adj[0][0] = 1;
+                return;
+            }
+
+            // temp is used to store cofactors of A[][] 
+            T sign = 1, temp[Size][Size];
+
+            for (std::size_t i = 0; i < Size; i++)
+            {
+                for (std::size_t j = 0; j < Size; j++)
+                {
+                    // Get cofactor of A[i][j] 
+                    getCofactor(A, temp, i, j, Size);
+
+                    // sign of adj[j][i] positive if sum of row 
+                    // and column indexes is even. 
+                    sign = ((i + j) % 2 == 0) ? 1 : -1;
+
+                    // Interchanging rows and columns to get the 
+                    // transpose of the cofactor matrix 
+                    adj[j][i] = (sign) * (determinant(temp, Size - 1));
+                }
+            }
         }
 
     private:
         std::array<T, Size * Size> m_data = {};
     };
 
+    template <typename T>
+    using Matrix3 = Matrix<T, 3>;
+
+    template <typename T>
+    using Mat3 = Matrix3<T>;
+
     template<typename T>
     using Matrix4 = Matrix<T, 4>;
+    
+    template<typename T>
+    using Mat4 = Matrix4<T>;
 }

@@ -33,6 +33,7 @@ namespace ModelViewer
                 const std::vector<Color>& getColors() const;
                 void setColor(Color color);
                 const Matrix4<double>& getMatrix() const;
+                const Matrix4<double>& getNormalMatrix() const;
                 void scaleX(double amount);
                 void scaleY(double amount);
                 void scaleZ(double amount);
@@ -49,6 +50,7 @@ namespace ModelViewer
             private:
                 Matrix4<double> createModelMatrix(const Vector4<double>& translate, 
                     const Vector4<double>& rotate, const Vector4<double>& scale) const;
+                void updateCachedModelMatrices();
 
             private:
                 std::vector<Vector4<double>> m_Vertices;
@@ -62,6 +64,7 @@ namespace ModelViewer
                 Vector4<double> m_RotateVector;
                 Vector4<double> m_ScaleVector;
                 Matrix4<double> m_CacheModelMatrix;
+                Matrix4<double> m_CacheNormalModelMatrix;
             };
         }
     }

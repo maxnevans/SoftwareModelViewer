@@ -28,8 +28,8 @@ namespace ModelViewer
             {
             public:
                 Phong(AmbientLight ambientLight, DirectionalLight directionalLight);
-                TriangleColorCalculator createTriangleLightCalculator(Primitives::FltTriangleRef triangleVertices,
-                    Primitives::FltTriangleRef triangleNormals) const;
+                Color operator()(const Vec3<double>& normal, const Vec3<double>& worldVertex, 
+                    const Vec3<double>& view, Color objectBaseColor) const;
 
             private:
                 AmbientLight m_ambient;

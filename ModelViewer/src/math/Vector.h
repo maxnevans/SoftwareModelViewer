@@ -181,6 +181,7 @@ namespace ModelViewer
             Vector<T, 4> output;
             for (int i = 0; i < Size; i++)
                 output[i] = m_data[i];
+            output[3] = static_cast<T>(1.0);
             return output;
         }
 
@@ -230,13 +231,13 @@ namespace ModelViewer
         X, Y, Z, W
     };
 
-    template<typename T>
-    Vector4<T> operator*(const Matrix4<T>& matrix, const Vector4<T>& vec)
+    template<typename T, std::size_t Size>
+    Vector<T, Size> operator*(const Matrix<T, Size>& matrix, const Vector<T, Size>& vec)
     {
-        Vector4<T> output = {};
+        Vector<T, Size> output = {};
 
-        for (int i = 0; i < 4; i++)
-            for (int j = 0; j < 4; j++)
+        for (int i = 0; i < Size; i++)
+            for (int j = 0; j < Size; j++)
                 output[i] += matrix(j, i) * vec[j];
 
         return output;

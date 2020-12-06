@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Rasterizer.h"
 #include "Core.h"
+#include "engine/light/Phong.h"
 
 namespace ModelViewer
 {
@@ -68,6 +69,29 @@ namespace ModelViewer
                 return;
 
             m_zBuffer[y * m_width + x] = z;
+            drawPixel(x, y, color);
+        }
+
+        void Rasterizer::drawPixel(int x, int y, double z, Color color, const Vec3<double>& normal, const Vec3<double>& worldVertex)
+        {
+            if (!checkPoint(x, y, m_width, m_height))
+                return;
+
+            if (z <= 0)
+                return;
+
+            if (m_zBuffer[y * m_width + x] <= z)
+                return;
+
+            // Update z-buffer
+            m_zBuffer[y * m_width + x] = z;
+
+            // TODO: calculate light
+
+            Light::Phong light({ { 99, 179, 219  }, 50 }, { Vector3<double>({ 0, 0, 5.0 }), { 145, 155, 237}, 50 });
+
+            color = light(normal, worldVertex, Vec3<double>({5.0, 0.0, 0.0}), color);
+
             drawPixel(x, y, color);
         }
 
@@ -280,6 +304,102 @@ namespace ModelViewer
             drawBetaPartTriangle(b, zB, c, zC, a, zA, alphaZDistance, totalHeight, alphaDistanceVec, color);
         }
 
+        void Rasterizer::drawTriangle(Vec2<int> a, double zA, Vec3<double> aNormal, Vec3<double> aWorldVertex,
+            Vec2<int> b, double zB, Vec3<double> bNormal, Vec3<double> bWorldVertex, 
+            Vec2<int> c, double zC, Vec3<double> cNormal, Vec3<double> cWorldVertex, Color color)
+        {
+            if (zA <= 0 && zB <= 0 && zC <= 0)
+                return;
+
+            // Don't care about 0 height triangle
+            if (a[Y] == b[Y] && b[Y] == c[Y])
+                return;
+
+            // Sort by Y asc: A min, B, C max
+            if (a[Y] > b[Y])
+            {
+                std::swap(a, b);
+                std::swap(zA, zB);
+                std::swap(aNormal, bNormal);
+                std::swap(aWorldVertex, bWorldVertex);
+            }
+            if (b[Y] > c[Y])
+            {
+                std::swap(b, c);
+                std::swap(zB, zC);
+                std::swap(bNormal, cNormal);
+                std::swap(bWorldVertex, cWorldVertex);
+            }
+            if (a[Y] > b[Y])
+            {
+                std::swap(a, b);
+                std::swap(zA, zB);
+                std::swap(aNormal, bNormal);
+                std::swap(aWorldVertex, bWorldVertex);
+            }
+
+            const int totalHeight = c[Y] - a[Y];
+
+            const Vec2<int> alphaDistanceVec = c - a;
+            const double alphaZDistance = zC - zA;
+            const Vec3<double> alphaNormalDistance = cNormal - aNormal;
+            const Vec3<double> alphaWorldVertexDistance = static_cast<Vec3<double>>(cWorldVertex - aWorldVertex);
+
+            const auto drawBetaPartTriangle = [this](const Vec2<int>& a, double zA, const Vec3<double>& aNormal, const Vec3<double>& aWorldVertex,
+                const Vec2<int>& b, double zB, const Vec3<double>& bNormal, const Vec3<double>& bWorldVertex,
+                const Vec2<int>& zeroPoint, double zZeroPoint, const Vec3<double>& zeroPointNormal, const Vec3<double>& zeroPointWorldVertex,
+                double alphaZDistance, const Vec3<double>& alphaNormalDistance, const Vec3<double>& alphaWorldVertexDistance,
+                int totalHeight, const Vec2<int>& alphaDistanceVec, Color color)
+            {
+                const int segmentHeight = b[Y] - a[Y] + 1;
+                const auto betaDistanceVec = b - a;
+                const auto betaZDistance = zB - zA;
+                const auto betaNormalDistance = bNormal - aNormal;
+                const auto betaWorldVertexDistance = bWorldVertex - aWorldVertex;
+
+                for (int y = a[Y]; y <= b[Y]; y++)
+                {
+                    const double alpha = (static_cast<double>(y) - zeroPoint[Y]) / totalHeight;
+                    const double beta = (static_cast<double>(y) - a[Y]) / segmentHeight; // Don't care zero division: always 1 or greater
+
+                    double alphaX = zeroPoint[X] + static_cast<double>(alphaDistanceVec[X]) * alpha;
+                    double alphaZ = zZeroPoint + alphaZDistance * alpha;
+                    Vec3<double> alphaNormal = zeroPointNormal + alphaNormalDistance * alpha;
+                    Vec3<double> alphaWorldVertex = zeroPointWorldVertex + alphaWorldVertexDistance * alpha;
+
+                    double betaX = a[X] + static_cast<double>(betaDistanceVec[X]) * beta;
+                    double betaZ = zA + betaZDistance * beta;
+                    Vec3<double> betaNormal = aNormal + betaNormalDistance * beta;
+                    Vec3<double> betaWorldVertex = aWorldVertex + betaWorldVertexDistance * beta;
+
+                    if (alphaX > betaX)
+                    {
+                        std::swap(alphaX, betaX);
+                        std::swap(alphaZ, betaZ);
+                        std::swap(alphaNormal, betaNormal);
+                        std::swap(alphaWorldVertex, betaWorldVertex);
+                    }
+
+                    drawHorizontalLineUnsafe(static_cast<int>(alphaX - 1), alphaZ, alphaNormal, alphaWorldVertex,
+                        static_cast<int>(std::ceil(betaX + 2)), betaZ, betaNormal, betaWorldVertex, y, color);
+                }
+            };
+
+            // Draw top beta part
+            drawBetaPartTriangle(a, zA, aNormal, aWorldVertex,
+                b, zB, bNormal, bWorldVertex,
+                a, zA, aNormal, aWorldVertex,
+                alphaZDistance, alphaNormalDistance, alphaWorldVertexDistance,
+                totalHeight, alphaDistanceVec, color);
+
+            // Draw bottom beta part
+            drawBetaPartTriangle(b, zB, bNormal, bWorldVertex,
+                c, zC, cNormal, cWorldVertex,
+                a, zA, aNormal, aWorldVertex,
+                alphaZDistance, alphaNormalDistance, alphaWorldVertexDistance,
+                totalHeight, alphaDistanceVec, color);
+        }
+
         void Rasterizer::drawQuadrangle(Vec3<double> a, Vec3<double> b, Vec3<double> c, Vec3<double> d, Color color)
         {
             drawTriangle(a, a[Z], b, b[Z], c, c[Z], color);
@@ -319,6 +439,26 @@ namespace ModelViewer
                 drawPixel(x, y, z, color);
                 z += zGrowth;
             } 
+        }
+        void Rasterizer::drawHorizontalLineUnsafe(int minX, double zMinX, Vec3<double> minXNormal, Vec3<double> minXWorldVertex,
+            int maxX, double zMaxX, Vec3<double> maxXNormal, Vec3<double> maxXWorldVertex, int y, Color color)
+        {
+            const double xDistance = std::abs(maxX - minX);
+
+            const Vec3<double> normalGrowth = (maxXNormal - minXNormal) / xDistance;
+            const Vec3<double> worldVertexGrowth = (maxXWorldVertex - minXWorldVertex) / xDistance;
+            const double zGrowth = (zMaxX - zMinX) / xDistance;
+
+            double z = zMinX;
+            Vec3<double> normal = minXNormal;
+            Vec3<double> worldVertex = minXWorldVertex;
+
+            for (int x = minX; x < maxX; x++)
+            {
+                drawPixel(x, y, z, color, normal.normalize(), worldVertex);
+                z += zGrowth;
+                normal += normalGrowth;
+            }
         }
     }
 }
