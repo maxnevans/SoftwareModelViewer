@@ -81,6 +81,8 @@ namespace ModelViewer
         // Do not set m_HWnd member here. It is being set inside 
         // p_WndInstallProc more earlier that it could be set here.
 
+        m_App.modelBegin();
+
         m_App.loadMeshFromFile(L"model.obj", [this](bool isLoadedSuccessfully)
         {
             if (!isLoadedSuccessfully)
@@ -92,6 +94,44 @@ namespace ModelViewer
                        
             PostMessage(m_HWnd, ModelViewerWindowMessage::WM_MODELVIEWER, ModelViewerWindowMessage::WPARAM_REDRAW, NULL);
         });
+
+        m_App.loadDiffuseMapFromFile("albedo map.png", [this](bool isLoadedSuccessfully)
+        {
+            if (!isLoadedSuccessfully)
+            {
+                MessageBox(m_HWnd, L"Failed to load diffuse map from file!", L"Error", MB_OK | MB_ICONERROR);
+                PostMessage(m_HWnd, ModelViewerWindowMessage::WM_MODELVIEWER, ModelViewerWindowMessage::WPARAM_EXCEPTION, NULL);
+                return;
+            }
+
+            PostMessage(m_HWnd, ModelViewerWindowMessage::WM_MODELVIEWER, ModelViewerWindowMessage::WPARAM_REDRAW, NULL);
+        });
+
+        m_App.loadNormalMapFromFile("normal map.png", [this](bool isLoadedSuccessfully)
+        {
+            if (!isLoadedSuccessfully)
+            {
+                MessageBox(m_HWnd, L"Failed to load normal map from file!", L"Error", MB_OK | MB_ICONERROR);
+                PostMessage(m_HWnd, ModelViewerWindowMessage::WM_MODELVIEWER, ModelViewerWindowMessage::WPARAM_EXCEPTION, NULL);
+                return;
+            }
+
+            PostMessage(m_HWnd, ModelViewerWindowMessage::WM_MODELVIEWER, ModelViewerWindowMessage::WPARAM_REDRAW, NULL);
+        });
+
+        m_App.loadSpecularMapFromFile("specular map.png", [this](bool isLoadedSuccessfully)
+        {
+            if (!isLoadedSuccessfully)
+            {
+                MessageBox(m_HWnd, L"Failed to load specular map from file!", L"Error", MB_OK | MB_ICONERROR);
+                PostMessage(m_HWnd, ModelViewerWindowMessage::WM_MODELVIEWER, ModelViewerWindowMessage::WPARAM_EXCEPTION, NULL);
+                return;
+            }
+
+            PostMessage(m_HWnd, ModelViewerWindowMessage::WM_MODELVIEWER, ModelViewerWindowMessage::WPARAM_REDRAW, NULL);
+        });
+
+        m_App.modelEnd();
     }
 
     void MainWindow::close()

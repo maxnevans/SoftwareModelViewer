@@ -140,6 +140,46 @@ namespace ModelViewer
                 updateCachedModelMatrices();
             }
 
+            void Object::setDiffuseMap(std::vector<ColorChannel> data, std::size_t width, std::size_t height)
+            {
+                m_textures.diffuseMap = {};
+                m_textures.diffuseMap.rawData = std::move(data);
+                m_textures.diffuseMap.width = width;
+                m_textures.diffuseMap.height = height;
+                
+            }
+
+            void Object::setNormalMap(std::vector<ColorChannel> data, std::size_t width, std::size_t height)
+            {
+                m_textures.normalMap = {};
+                m_textures.normalMap.rawData = std::move(data);
+                m_textures.normalMap.width = width;
+                m_textures.normalMap.height = height;
+            }
+
+            void Object::setSpecularMap(std::vector<ColorChannel> data, std::size_t width, std::size_t height)
+            {
+                m_textures.specularMap = {};
+                m_textures.specularMap.rawData = std::move(data);
+                m_textures.specularMap.width = width;
+                m_textures.specularMap.height = height;
+            }
+
+            const Object::Texture& Object::getDiffuseMap() const
+            {
+                return m_textures.diffuseMap;
+            }
+
+            const Object::Texture& Object::getNormalMap() const
+            {
+                return m_textures.normalMap;
+            }
+
+            const Object::Texture& Object::getSpecularMap() const
+            {
+                return m_textures.specularMap;
+            }
+
             Matrix4<double> Object::createModelMatrix(const Vector4<double>& translate, 
                 const Vector4<double>& rotate, const Vector4<double>& scale) const
             {

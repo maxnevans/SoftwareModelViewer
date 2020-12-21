@@ -8,6 +8,7 @@
 #include "engine/scene/Scene.h"
 #include "engine/Primitives.h"
 #include "engine/ObjectParser.h"
+#include "engine/TextureParser.h"
 
 #define M_PI 3.14159265358979323846
 
@@ -187,9 +188,53 @@ namespace ModelViewer
             cb(true);
     }
 
+    void ModelViewerApp::loadDiffuseMapFromFile(const std::string& filename, OnLoadCallback cb)
+    {
+        Engine::TextureParser parser(filename);
+
+        auto diffuseMap = parser.parse();
+
+        m_Model->setDiffuseMap(std::move(diffuseMap.rawData), diffuseMap.width, diffuseMap.height);
+
+        if (cb)
+            cb(true);
+    }
+
+    void ModelViewerApp::loadNormalMapFromFile(const std::string& filename, OnLoadCallback cb)
+    {
+        Engine::TextureParser parser(filename);
+
+        auto normalMap = parser.parse();
+
+        m_Model->setNormalMap(std::move(normalMap.rawData), normalMap.width, normalMap.height);
+
+        if (cb)
+            cb(true);
+    }
+
+    void ModelViewerApp::loadSpecularMapFromFile(const std::string& filename, OnLoadCallback cb)
+    {
+        Engine::TextureParser parser(filename);
+
+        auto specularMap = parser.parse();
+
+        m_Model->setSpecularMap(std::move(specularMap.rawData), specularMap.width, specularMap.height);
+
+        if (cb)
+            cb(true);
+    }
+
     void ModelViewerApp::setDimensions(int width, int height)
     {
         m_Camera->setAspectRatio(static_cast<double>(width) / height);
         m_Viewport->setDimensions(width, height);
+    }
+
+    void ModelViewerApp::modelBegin()
+    {
+    }
+
+    void ModelViewerApp::modelEnd()
+    {
     }
 }

@@ -22,6 +22,22 @@ namespace ModelViewer
                     PER_EDGE
                 };
 
+                struct Texture
+                {
+                    std::vector<ColorChannel> rawData;
+                    std::size_t width;
+                    std::size_t height;
+
+                    inline ColorChannel operator()(double u, double v)
+                    {
+                        expect(u >= 0 && u <= 1);
+                        expect(v >= 0 && v <= 1);
+                        expect(width * height == rawData.size());
+
+                        return rawData[static_cast<std::size_t>(v * height * width + u * width)];
+                    }
+                };
+
             public:
                 Object(std::vector<Vector4<double>> vertices, std::vector<Vec3<double>> textureCoords, 
                     std::vector<Vec3<double>> normals, std::vector<Index> indices, 
@@ -46,6 +62,12 @@ namespace ModelViewer
                 void rotateY(double amount);
                 void rotateZ(double amount);
                 void rotate(Vector4<double> amount);
+                void setDiffuseMap(std::vector<ColorChannel> data, std::size_t width, std::size_t height);
+                void setNormalMap(std::vector<ColorChannel> data, std::size_t width, std::size_t height);
+                void setSpecularMap(std::vector<ColorChannel> data, std::size_t width, std::size_t height);
+                const Texture& getDiffuseMap() const;
+                const Texture& getNormalMap() const ;
+                const Texture& getSpecularMap() const;
 
             private:
                 Matrix4<double> createModelMatrix(const Vector4<double>& translate, 
@@ -65,6 +87,12 @@ namespace ModelViewer
                 Vector4<double> m_ScaleVector;
                 Matrix4<double> m_CacheModelMatrix;
                 Matrix4<double> m_CacheNormalModelMatrix;
+
+                struct {
+                    Texture diffuseMap;
+                    Texture normalMap;
+                    Texture specularMap;
+                } m_textures;
             };
         }
     }

@@ -34,7 +34,12 @@ namespace ModelViewer
         void zoomIn(double zoom);
         void zoomOut(double zoom);
         void loadMeshFromFile(const std::wstring& filename, OnLoadCallback cb = nullptr);
+        void loadDiffuseMapFromFile(const std::string& filename, OnLoadCallback cb = nullptr);
+        void loadNormalMapFromFile(const std::string& filename, OnLoadCallback cb = nullptr);
+        void loadSpecularMapFromFile(const std::string& filename, OnLoadCallback cb = nullptr);
         void setDimensions(int width, int height);
+        void modelBegin();
+        void modelEnd();
 
     private:
         Vector4<double> m_RotateVector = {};
@@ -44,7 +49,6 @@ namespace ModelViewer
         std::shared_ptr<Engine::Scene::Scene> m_Scene = nullptr;
         std::shared_ptr<Engine::Viewport> m_Viewport = nullptr;
         std::shared_ptr<Engine::Scene::Camera> m_Camera = nullptr;
-        std::shared_ptr<Engine::ParsedObject> m_ParsedObject = nullptr;
         Engine::Rasterizer m_rasterizer;
         std::mutex m_drawnLinesMutex;
         ThreadPool m_pool;
