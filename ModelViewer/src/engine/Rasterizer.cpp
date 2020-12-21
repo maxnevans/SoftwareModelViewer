@@ -95,6 +95,29 @@ namespace ModelViewer
             drawPixel(x, y, color);
         }
 
+        void Rasterizer::drawPixel(int x, int y, double z, Color color, const Vec3<double>& normal, const Vec3<double>& worldVertex, double ks)
+        {
+            if (!checkPoint(x, y, m_width, m_height))
+                return;
+
+            if (z <= 0)
+                return;
+
+            if (m_zBuffer[y * m_width + x] <= z)
+                return;
+
+            // Update z-buffer
+            m_zBuffer[y * m_width + x] = z;
+
+            // TODO: calculate light
+
+            Light::Phong light({ { 99, 179, 219  }, 50 }, { Vector3<double>({ 0, 0, 5.0 }), { 145, 155, 237}, 50 });
+
+            color = light(normal, worldVertex, Vec3<double>({ 5.0, 0.0, 0.0 }), color, ks);
+
+            drawPixel(x, y, color);
+        }
+
         void Rasterizer::drawLine(int x1, int y1, int x2, int y2, Color color)
         {
             expectPoint(x1, y1, m_width, m_height);
@@ -400,6 +423,107 @@ namespace ModelViewer
                 totalHeight, alphaDistanceVec, color);
         }
 
+        void Rasterizer::drawTriangle(Vec2<int> a, double zA, Vec3<double> aWorldVertex, Vec3<double> uvA,
+            Vec2<int> b, double zB, Vec3<double> bWorldVertex, Vec3<double> uvB,
+            Vec2<int> c, double zC, Vec3<double> cWorldVertex, Vec3<double> uvC,
+            const DiffuseMap& diffuseMap, const NormalMap& normalMap, const SpecularMap& specularMap)
+        {
+            if (zA <= 0 && zB <= 0 && zC <= 0)
+                return;
+
+            // Don't care about 0 height triangle
+            if (a[Y] == b[Y] && b[Y] == c[Y])
+                return;
+
+            // Sort by Y asc: A min, B, C max
+            if (a[Y] > b[Y])
+            {
+                std::swap(a, b);
+                std::swap(zA, zB);
+                std::swap(aWorldVertex, bWorldVertex);
+                std::swap(uvA, uvB);
+            }
+            if (b[Y] > c[Y])
+            {
+                std::swap(b, c);
+                std::swap(zB, zC);
+                std::swap(bWorldVertex, cWorldVertex);
+                std::swap(uvB, uvC);
+            }
+            if (a[Y] > b[Y])
+            {
+                std::swap(a, b);
+                std::swap(zA, zB);
+                std::swap(aWorldVertex, bWorldVertex);
+                std::swap(uvA, uvB);
+            }
+
+            const int totalHeight = c[Y] - a[Y];
+
+            const Vec2<int> alphaDistanceVec = c - a;
+            const double alphaZDistance = zC - zA;
+            const Vec3<double> alphaWorldVertexDistance = static_cast<Vec3<double>>(cWorldVertex - aWorldVertex);
+            const Vec3<double> alphaUVDistance = uvC - uvA;
+
+            const auto drawBetaPartTriangle = [this](const Vec2<int>& a, double zA, const Vec3<double>& aWorldVertex, const Vec3<double>& uvA,
+                const Vec2<int>& b, double zB, const Vec3<double>& bWorldVertex, const Vec3<double>& uvB,
+                const Vec2<int>& zeroPoint, double zZeroPoint, const Vec3<double>& zeroPointWorldVertex, const Vec3<double>& zeroPointUV,
+                double alphaZDistance, const Vec3<double>& alphaWorldVertexDistance, const Vec3<double>& alphaUVDistance,
+                int totalHeight, const Vec2<int>& alphaDistanceVec, 
+                const DiffuseMap& diffuseMap, const NormalMap& normalMap, const SpecularMap& specularMap)
+            {
+                const int segmentHeight = b[Y] - a[Y] + 1;
+                const auto betaDistanceVec = b - a;
+                const auto betaZDistance = zB - zA;
+                const auto betaUVDistance = uvB - uvA;
+                const auto betaWorldVertexDistance = bWorldVertex - aWorldVertex;
+
+                for (int y = a[Y]; y <= b[Y]; y++)
+                {
+                    const double alpha = (static_cast<double>(y) - zeroPoint[Y]) / totalHeight;
+                    const double beta = (static_cast<double>(y) - a[Y]) / segmentHeight; // Don't care zero division: always 1 or greater
+
+                    double alphaX = zeroPoint[X] + static_cast<double>(alphaDistanceVec[X]) * alpha;
+                    double alphaZ = zZeroPoint + alphaZDistance * alpha;
+                    Vec3<double> alphaUV = zeroPointUV + alphaUVDistance * alpha;
+                    Vec3<double> alphaWorldVertex = zeroPointWorldVertex + alphaWorldVertexDistance * alpha;
+
+                    double betaX = a[X] + static_cast<double>(betaDistanceVec[X]) * beta;
+                    double betaZ = zA + betaZDistance * beta;
+                    Vec3<double> betaUV = uvA + betaUVDistance * beta;
+                    Vec3<double> betaWorldVertex = aWorldVertex + betaWorldVertexDistance * beta;
+
+                    if (alphaX > betaX)
+                    {
+                        std::swap(alphaX, betaX);
+                        std::swap(alphaZ, betaZ);
+                        std::swap(alphaUV, betaUV);
+                        std::swap(alphaWorldVertex, betaWorldVertex);
+                    }
+
+                    drawHorizontalLineUnsafe(static_cast<int>(alphaX - 1), alphaZ, alphaWorldVertex, alphaUV,
+                        static_cast<int>(std::ceil(betaX + 2)), betaZ, betaWorldVertex, betaUV, y, 
+                        diffuseMap, normalMap, specularMap);
+                }
+            };
+
+            // Draw top beta part
+            drawBetaPartTriangle(a, zA, aWorldVertex, uvA,
+                b, zB, bWorldVertex, uvB,
+                a, zA, aWorldVertex, uvA,
+                alphaZDistance, alphaWorldVertexDistance, alphaUVDistance,
+                totalHeight, alphaDistanceVec, 
+                diffuseMap, normalMap, specularMap);
+
+            // Draw bottom beta part
+            drawBetaPartTriangle(b, zB, bWorldVertex, uvB,
+                c, zC, cWorldVertex, uvC,
+                a, zA, aWorldVertex, uvA,
+                alphaZDistance, alphaWorldVertexDistance, alphaUVDistance,
+                totalHeight, alphaDistanceVec, 
+                diffuseMap, normalMap, specularMap);
+        }
+
         void Rasterizer::drawQuadrangle(Vec3<double> a, Vec3<double> b, Vec3<double> c, Vec3<double> d, Color color)
         {
             drawTriangle(a, a[Z], b, b[Z], c, c[Z], color);
@@ -458,6 +582,28 @@ namespace ModelViewer
                 drawPixel(x, y, z, color, normal.normalize(), worldVertex);
                 z += zGrowth;
                 normal += normalGrowth;
+            }
+        }
+
+        void Rasterizer::drawHorizontalLineUnsafe(int minX, double zMinX, Vec3<double> minXWorldVertex, Vec3<double> minXUV, 
+            int maxX, double zMaxX, Vec3<double> maxXWorldVertex, Vec3<double> maxXUV, int y,
+            const DiffuseMap& diffuseMap, const NormalMap& normalMap, const SpecularMap& specularMap)
+        {
+            const double xDistance = std::abs(maxX - minX);
+
+            const Vec3<double> uvGrowth = (maxXUV - minXUV) / xDistance;
+            const Vec3<double> worldVertexGrowth = (maxXWorldVertex - minXWorldVertex) / xDistance;
+            const double zGrowth = (zMaxX - zMinX) / xDistance;
+
+            double z = zMinX;
+            Vec3<double> uv = minXUV;
+            Vec3<double> worldVertex = minXWorldVertex;
+
+            for (int x = minX; x < maxX; x++)
+            {
+                drawPixel(x, y, z, diffuseMap(uv[U], uv[V]), normalMap(uv[U], uv[V]), worldVertex, specularMap(uv[U], uv[V]));
+                z += zGrowth;
+                uv += uvGrowth;
             }
         }
     }

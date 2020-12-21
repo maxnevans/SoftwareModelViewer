@@ -140,42 +140,32 @@ namespace ModelViewer
                 updateCachedModelMatrices();
             }
 
-            void Object::setDiffuseMap(std::vector<ColorChannel> data, std::size_t width, std::size_t height)
+            void Object::setDiffuseMap(DiffuseMap diffuseMap)
             {
-                m_textures.diffuseMap = {};
-                m_textures.diffuseMap.rawData = std::move(data);
-                m_textures.diffuseMap.width = width;
-                m_textures.diffuseMap.height = height;
-                
+                m_textures.diffuseMap = std::move(diffuseMap);
             }
 
-            void Object::setNormalMap(std::vector<ColorChannel> data, std::size_t width, std::size_t height)
+            void Object::setNormalMap(NormalMap normalMap)
             {
-                m_textures.normalMap = {};
-                m_textures.normalMap.rawData = std::move(data);
-                m_textures.normalMap.width = width;
-                m_textures.normalMap.height = height;
+                m_textures.normalMap = std::move(normalMap);
             }
 
-            void Object::setSpecularMap(std::vector<ColorChannel> data, std::size_t width, std::size_t height)
+            void Object::setSpecularMap(SpecularMap specularMap)
             {
-                m_textures.specularMap = {};
-                m_textures.specularMap.rawData = std::move(data);
-                m_textures.specularMap.width = width;
-                m_textures.specularMap.height = height;
+                m_textures.specularMap = std::move(specularMap);
             }
 
-            const Object::Texture& Object::getDiffuseMap() const
+            const DiffuseMap& Object::getDiffuseMap() const
             {
                 return m_textures.diffuseMap;
             }
 
-            const Object::Texture& Object::getNormalMap() const
+            const NormalMap& Object::getNormalMap() const
             {
                 return m_textures.normalMap;
             }
 
-            const Object::Texture& Object::getSpecularMap() const
+            const SpecularMap& Object::getSpecularMap() const
             {
                 return m_textures.specularMap;
             }

@@ -1,5 +1,5 @@
 #pragma once
-#include "engine/Rasterizer.h"
+#include "engine/Color.h"
 #include "math/Vector.h"
 #include "engine/Primitives.h"
 
@@ -29,7 +29,7 @@ namespace ModelViewer
             public:
                 Phong(AmbientLight ambientLight, DirectionalLight directionalLight);
                 Color operator()(const Vec3<double>& normal, const Vec3<double>& worldVertex, 
-                    const Vec3<double>& view, Color objectBaseColor) const;
+                    const Vec3<double>& view, Color objectBaseColor, double ks = 1.0) const;
 
             private:
                 AmbientLight m_ambient;

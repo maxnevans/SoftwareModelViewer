@@ -15,7 +15,7 @@ namespace ModelViewer
             }
 
             Color Phong::operator()(const Vec3<double>& normal, const Vec3<double>& worldVertex, 
-                const Vec3<double>& view, Color objectBaseColor) const
+                const Vec3<double>& view, Color objectBaseColor, double ks) const
             {
                 const Vec3<double> lightDirection = m_directional.direction.normalize();
 
@@ -28,7 +28,6 @@ namespace ModelViewer
                 constexpr double ke = 0.1;
                 constexpr double ka = 0.2;
                 constexpr double kd = 0.3;
-                constexpr double ks = 1;
                 constexpr double sh = 4;
                 
                 Vec3<double> emissive = static_cast<Vec3<double>>(objectBaseColor) * ke;

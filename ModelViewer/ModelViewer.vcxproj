@@ -19,13 +19,16 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\engine\DiffuseMap.cpp" />
     <ClCompile Include="src\engine\light\Phong.cpp" />
     <ClCompile Include="src\engine\light\Lambert.cpp" />
+    <ClCompile Include="src\engine\NormalMap.cpp" />
     <ClCompile Include="src\engine\ObjectParser.cpp" />
     <ClCompile Include="src\engine\Rasterizer.cpp" />
     <ClCompile Include="src\engine\scene\Camera.cpp" />
     <ClCompile Include="src\engine\scene\Object.cpp" />
     <ClCompile Include="src\engine\scene\Scene.cpp" />
+    <ClCompile Include="src\engine\SpecularMap.cpp" />
     <ClCompile Include="src\engine\Viewport.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\MainWindow.cpp" />
@@ -42,9 +45,12 @@
     <ClCompile Include="vendor\lodepng\lodepng.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\engine\Color.h" />
+    <ClInclude Include="src\engine\DiffuseMap.h" />
     <ClInclude Include="src\engine\light\Phong.h" />
     <ClInclude Include="src\Core.h" />
     <ClInclude Include="src\engine\light\Lambert.h" />
+    <ClInclude Include="src\engine\NormalMap.h" />
     <ClInclude Include="src\engine\Pipeline.h" />
     <ClInclude Include="src\engine\Primitives.h" />
     <ClInclude Include="src\engine\Rasterizer.h" />
@@ -52,6 +58,8 @@
     <ClInclude Include="src\engine\scene\Camera.h" />
     <ClInclude Include="src\engine\scene\Object.h" />
     <ClInclude Include="src\engine\scene\Scene.h" />
+    <ClInclude Include="src\engine\SpecularMap.h" />
+    <ClInclude Include="src\engine\Texture.h" />
     <ClInclude Include="src\engine\Viewport.h" />
     <ClInclude Include="src\engine\VertexManipulator.h" />
     <ClInclude Include="src\engine\WorldMatrix.h" />

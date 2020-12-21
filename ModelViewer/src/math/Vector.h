@@ -131,6 +131,40 @@ namespace ModelViewer
             return *this;
         }
 
+        Vector operator-(T number) const
+        {
+            auto output = m_data;
+            for (int i = 0; i < Size; i++)
+                output[i] -= number;
+
+            return Vector(std::move(output));
+        }
+
+        Vector& operator-=(T number) const
+        {
+            for (int i = 0; i < Size; i++)
+                m_data[i] -= number;
+
+            return *this;
+        }
+
+        Vector operator+(T number) const
+        {
+            auto output = m_data;
+            for (int i = 0; i < Size; i++)
+                output[i] += number;
+
+            return Vector(std::move(output));
+        }
+
+        Vector& operator+=(T number) const
+        {
+            for (int i = 0; i < Size; i++)
+                m_data[i] += number;
+
+            return *this;
+        }
+
         Vector operator+(const Vector& vec) const
         {
             auto output = m_data;
@@ -229,6 +263,11 @@ namespace ModelViewer
     enum CoordinateNames
     {
         X, Y, Z, W
+    };
+
+    enum UVCoordinateNames
+    {
+        U, V
     };
 
     template<typename T, std::size_t Size>

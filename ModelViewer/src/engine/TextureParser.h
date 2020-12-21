@@ -1,6 +1,7 @@
 #pragma once
 #include "pch.h"
-#include "engine/Rasterizer.h"
+#include "engine/Color.h"
+#include "engine/Texture.h"
 
 namespace ModelViewer::Engine
 {
@@ -15,7 +16,7 @@ namespace ModelViewer::Engine
     {
     public:
         TextureParser(std::string filename);
-        ParsedTexture parse();
+        Texture parse();
 
     private:
         std::string m_filename;

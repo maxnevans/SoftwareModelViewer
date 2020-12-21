@@ -10,9 +10,9 @@ namespace ModelViewer::Engine
     {
     }
 
-    ParsedTexture TextureParser::parse()
+    Texture TextureParser::parse()
     {
-        ParsedTexture out = {};
+        Texture out = {};
 
         unsigned err = lodepng::decode(out.rawData, out.width, out.height, m_filename);
 

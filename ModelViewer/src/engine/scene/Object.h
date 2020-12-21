@@ -3,7 +3,10 @@
 #include "math/Vector.h"
 #include "math/Matrix.h"
 #include "engine/ObjectParser.h"
-#include "engine/Rasterizer.h"
+#include "engine/Color.h"
+#include "engine/DiffuseMap.h"
+#include "engine/NormalMap.h"
+#include "engine/SpecularMap.h"
 
 namespace ModelViewer
 {
@@ -20,22 +23,6 @@ namespace ModelViewer
                     PER_VERTEX,
                     PER_POLYGON,
                     PER_EDGE
-                };
-
-                struct Texture
-                {
-                    std::vector<ColorChannel> rawData;
-                    std::size_t width;
-                    std::size_t height;
-
-                    inline ColorChannel operator()(double u, double v)
-                    {
-                        expect(u >= 0 && u <= 1);
-                        expect(v >= 0 && v <= 1);
-                        expect(width * height == rawData.size());
-
-                        return rawData[static_cast<std::size_t>(v * height * width + u * width)];
-                    }
                 };
 
             public:
@@ -62,12 +49,12 @@ namespace ModelViewer
                 void rotateY(double amount);
                 void rotateZ(double amount);
                 void rotate(Vector4<double> amount);
-                void setDiffuseMap(std::vector<ColorChannel> data, std::size_t width, std::size_t height);
-                void setNormalMap(std::vector<ColorChannel> data, std::size_t width, std::size_t height);
-                void setSpecularMap(std::vector<ColorChannel> data, std::size_t width, std::size_t height);
-                const Texture& getDiffuseMap() const;
-                const Texture& getNormalMap() const ;
-                const Texture& getSpecularMap() const;
+                void setDiffuseMap(DiffuseMap diffuseMap);
+                void setNormalMap(NormalMap normalMap);
+                void setSpecularMap(SpecularMap specularMap);
+                const DiffuseMap& getDiffuseMap() const;
+                const NormalMap& getNormalMap() const;
+                const SpecularMap& getSpecularMap() const;
 
             private:
                 Matrix4<double> createModelMatrix(const Vector4<double>& translate, 
@@ -89,9 +76,9 @@ namespace ModelViewer
                 Matrix4<double> m_CacheNormalModelMatrix;
 
                 struct {
-                    Texture diffuseMap;
-                    Texture normalMap;
-                    Texture specularMap;
+                    DiffuseMap diffuseMap;
+                    NormalMap normalMap;
+                    SpecularMap specularMap;
                 } m_textures;
             };
         }

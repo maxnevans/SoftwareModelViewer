@@ -9,6 +9,9 @@
 #include "engine/Primitives.h"
 #include "engine/ObjectParser.h"
 #include "engine/TextureParser.h"
+#include "engine/DiffuseMap.h"
+#include "engine/NormalMap.h"
+#include "engine/SpecularMap.h"
 
 #define M_PI 3.14159265358979323846
 
@@ -192,9 +195,9 @@ namespace ModelViewer
     {
         Engine::TextureParser parser(filename);
 
-        auto diffuseMap = parser.parse();
+        Engine::Texture diffuseMap = parser.parse();
 
-        m_Model->setDiffuseMap(std::move(diffuseMap.rawData), diffuseMap.width, diffuseMap.height);
+        m_Model->setDiffuseMap(Engine::DiffuseMap::fromTexture(diffuseMap));
 
         if (cb)
             cb(true);
@@ -204,9 +207,9 @@ namespace ModelViewer
     {
         Engine::TextureParser parser(filename);
 
-        auto normalMap = parser.parse();
+        Engine::Texture normalMap = parser.parse();
 
-        m_Model->setNormalMap(std::move(normalMap.rawData), normalMap.width, normalMap.height);
+        m_Model->setNormalMap(Engine::NormalMap::fromTexture(normalMap));
 
         if (cb)
             cb(true);
@@ -216,9 +219,9 @@ namespace ModelViewer
     {
         Engine::TextureParser parser(filename);
 
-        auto specularMap = parser.parse();
+        Engine::Texture specularMap = parser.parse();
 
-        m_Model->setSpecularMap(std::move(specularMap.rawData), specularMap.width, specularMap.height);
+        m_Model->setSpecularMap(Engine::SpecularMap::fromTexture(specularMap));
 
         if (cb)
             cb(true);
