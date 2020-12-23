@@ -4,6 +4,9 @@
 #include "engine/Viewport.h"
 #include "engine/Rasterizer.h"
 #include "engine/light/Lambert.h"
+#include "engine/DiffuseMap.h"
+#include "engine/NormalMap.h"
+#include "engine/SpecularMap.h"
 
 namespace ModelViewer
 {
@@ -15,10 +18,11 @@ namespace ModelViewer
             {
                 std::reference_wrapper<const std::vector<Vec4<double>>> ver;
                 std::reference_wrapper<const std::vector<Vec4<double>>> verticesWorld;
-                std::reference_wrapper<const std::vector<Vec3<double>>> normals;
                 std::reference_wrapper<const std::vector<Vec3<double>>> uv;
                 std::reference_wrapper<const std::vector<Index>> ind;
-                std::reference_wrapper<const std::vector<Engine::Color>> col;
+                const DiffuseMap& diffuseMap;
+                const NormalMap& normalMap;
+                const SpecularMap& specularMap;
             };
 
             class Scene
@@ -33,13 +37,14 @@ namespace ModelViewer
                 std::vector<std::shared_ptr<Camera>> m_Cameras;
                 std::shared_ptr<Camera> m_CurrentActiveCamera;
                 std::vector<std::shared_ptr<Object>> m_Objects;
+
                 std::vector<Vector4<double>> m_vertices;
                 std::vector<Vector4<double>> m_verticesWorld;
                 std::vector<Vec3<double>> m_textureVertices;
-                std::vector<Vec3<double>> m_normals;
                 std::vector<Index> m_indices;
-                std::vector<Engine::Color> m_colors;
-                Light::Lambert m_light;
+                DiffuseMap m_diffuseMap;
+                NormalMap m_normalMap;
+                SpecularMap m_specularMap;
             };
         }
     }

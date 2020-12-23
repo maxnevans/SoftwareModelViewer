@@ -56,13 +56,11 @@ namespace ModelViewer
 
     void ModelViewerApp::draw(Gdiplus::Graphics& gfx, const AdditionalDrawData& data)
     {
-        auto&& [verRef, verticesWorldRef, normalsRef, uvsRef, indRef, colRef] = m_Scene->render(*m_Viewport);
+        auto&& [verRef, verticesWorldRef, uvsRef, indRef, diffuseMap, normalMap, specularMap] = m_Scene->render(*m_Viewport);
         const auto& vertices = verRef.get();
         const auto& verticesWorld = verticesWorldRef.get();
-        const auto& normals = normalsRef.get();
         const auto& uvs = uvsRef.get();
         const auto& indices = indRef.get();
-        const auto& colors = colRef.get();
 
         const auto drawLine = [this, &data](std::reference_wrapper<const std::vector<Vector4<double>>> ver, std::size_t aInd, std::size_t bInd)
         {
@@ -81,11 +79,12 @@ namespace ModelViewer
 
         const auto drawTriangle = [this, &data](std::reference_wrapper<const std::vector<Vec4<double>>> ver,
             std::reference_wrapper<const std::vector<Vec4<double>>> verticesWorld,
-            std::reference_wrapper<const std::vector<Vec3<double>>> normals, 
             std::reference_wrapper<const std::vector<Vec3<double>>> uvs,
-            std::reference_wrapper<const std::vector<Engine::Index>> indices, std::size_t indexSelector, 
-            std::reference_wrapper<const Vector3<int>> cameraVector,
-            Engine::Color color)
+            std::reference_wrapper<const std::vector<Engine::Index>> indices, std::size_t indexSelector,
+            std::reference_wrapper<const Vec3<int>> cameraVector,
+            std::reference_wrapper<const Engine::DiffuseMap> diffuseMap,
+            std::reference_wrapper<const Engine::NormalMap> normalMap,
+            std::reference_wrapper<const Engine::SpecularMap> specularMap)
         {
             Engine::Index aInd = indices.get()[indexSelector];
             Engine::Index bInd = indices.get()[indexSelector + 1];
@@ -99,10 +98,10 @@ namespace ModelViewer
 
             if (Engine::Primitives::isTriangleTowardsCamera(cameraVector.get(), triangle))
             {
-                m_rasterizer.drawTriangle(ver.get()[aInd.vertex], ver.get()[aInd.vertex][Z], normals.get()[aInd.normal], verticesWorld.get()[aInd.vertex],
-                    ver.get()[bInd.vertex], ver.get()[bInd.vertex][Z], normals.get()[bInd.normal], verticesWorld.get()[bInd.vertex],
-                    ver.get()[cInd.vertex], ver.get()[cInd.vertex][Z], normals.get()[cInd.normal], verticesWorld.get()[cInd.vertex],
-                    color);
+                m_rasterizer.drawTriangle(ver.get()[aInd.vertex], ver.get()[aInd.vertex][Z], verticesWorld.get()[aInd.vertex], uvs.get()[aInd.texture],
+                    ver.get()[bInd.vertex], ver.get()[bInd.vertex][Z], verticesWorld.get()[bInd.vertex], uvs.get()[bInd.texture],
+                    ver.get()[cInd.vertex], ver.get()[cInd.vertex][Z], verticesWorld.get()[cInd.vertex], uvs.get()[cInd.texture],
+                    diffuseMap.get(), normalMap.get(), specularMap.get());
             }
         };
 
@@ -119,15 +118,14 @@ namespace ModelViewer
             if (vertices[aInd][Z] <= 0 || vertices[bInd][Z] <= 0 || vertices[cInd][Z] <= 0)
                 continue;
 
-            Engine::Color color = colors[0];
-
 #if 0
             m_pool.enque(drawLine, std::cref(ver), aInd, bInd);
             m_pool.enque(drawLine, std::cref(ver), bInd, cInd);
             m_pool.enque(drawLine, std::cref(ver), cInd, aInd);
 #elif 1
             //drawTriangle(verRef, verticesWorld, normalsRef, uvsRef, indRef, i, std::cref(cameraVector), color);
-            m_pool.enque(drawTriangle, verRef, verticesWorld, normalsRef, uvsRef, indRef, i, std::cref(cameraVector), color);
+            m_pool.enque(drawTriangle, verRef, verticesWorld, uvsRef, indRef, i, std::cref(cameraVector), 
+                std::cref(diffuseMap), std::cref(normalMap), std::cref(specularMap));
 
 #endif
         }
@@ -185,7 +183,6 @@ namespace ModelViewer
         auto object = parser.parse();
         m_Model = std::make_shared<Engine::Scene::Object>(std::move(object.vertices), std::move(object.normals),
             std::move(object.textureVertices), std::move(object.indices));
-        m_Scene->addObject(m_Model);
 
         if (cb)
             cb(true);
@@ -239,5 +236,6 @@ namespace ModelViewer
 
     void ModelViewerApp::modelEnd()
     {
+        m_Scene->addObject(m_Model);
     }
 }

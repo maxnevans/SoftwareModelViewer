@@ -25,29 +25,35 @@ namespace ModelViewer
 
                 const double cosTheta = (std::max)(0.0, normal.cos(lightDirection));
 
-                constexpr double ke = 0.1;
-                constexpr double ka = 0.2;
-                constexpr double kd = 0.3;
-                constexpr double sh = 4;
+                constexpr double ka = 0.5;
+                constexpr double kd = 1;
+                constexpr double sh = 1;
                 
-                Vec3<double> emissive = static_cast<Vec3<double>>(objectBaseColor) * ke;
                 Vec3<double> ambient = static_cast<Vec3<double>>(m_ambient.color) * ka;
                 Vec3<double> diffuse = Vec3<double>{};
                 Vec3<double> specular = Vec3<double>{};
 
                 if (cosTheta > 0)
                 {
-                    Vec3<double> reflectionDirection = lightDirection - normal * (lightDirection.dotProduct(normal)) * 2;
+                    Vec3<double> reflectionDirection = (lightDirection - normal * (lightDirection.dotProduct(normal)) * 2).normalize();
 
                     diffuse = static_cast<Vec3<double>>(m_directional.color) * cosTheta * kd;
 
                     specular = static_cast<Vec3<double>>(m_directional.color) 
-                        * std::pow((std::max)(0.0, reflectionDirection.cos(viewDirection)), sh) * ks;
+                        * std::pow((std::max)(0.0, reflectionDirection.dotProduct(viewDirection)), sh) * ks;
                 }
 
-                Vec3<double> total = emissive + ambient + diffuse + specular;
+                Vec3<double> fragmentColor = ((ambient + diffuse + specular) / Color::MAX).componentwiseMultiplication(
+                    static_cast<Vec3<double>>(objectBaseColor));
+                /*Vec3<double> fragmentColor = ((specular) / Color::MAX).componentwiseMultiplication(
+                    static_cast<Vec3<double>>(objectBaseColor));*/
 
-                return { Color::boundColorChannel(total[0]), Color::boundColorChannel(total[1]), Color::boundColorChannel(total[2]) };
+                return { 
+                    Color::boundColorChannel(fragmentColor[0]), 
+                    Color::boundColorChannel(fragmentColor[1]), 
+                    Color::boundColorChannel(fragmentColor[2]) 
+                };
+                //return objectBaseColor;
             }
         }
     }

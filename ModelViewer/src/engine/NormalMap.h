@@ -16,7 +16,8 @@ namespace ModelViewer::Engine
             expect(u >= 0 && u <= 1);
             expect(v >= 0 && v <= 1);
             expect(width * height == data.size());
-            return data[static_cast<std::size_t>(v * height) * width + static_cast<std::size_t>(u * width)];
+            const auto i = width * height - (static_cast<std::size_t>(v * height) * width + static_cast<std::size_t>(u * width));
+            return data[i];
         }
         static NormalMap fromTexture(const Texture& texture);
 

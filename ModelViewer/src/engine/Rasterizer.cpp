@@ -88,7 +88,7 @@ namespace ModelViewer
 
             // TODO: calculate light
 
-            Light::Phong light({ { 99, 179, 219  }, 50 }, { Vector3<double>({ 0, 0, 5.0 }), { 145, 155, 237}, 50 });
+            Light::Phong light({ { 99, 179, 219  }, 50 }, { Vector3<double>({ 0, 0, 1.0 }), { 145, 155, 237}, 50 });
 
             color = light(normal, worldVertex, Vec3<double>({5.0, 0.0, 0.0}), color);
 

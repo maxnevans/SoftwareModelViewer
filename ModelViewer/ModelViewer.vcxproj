@@ -71,6 +71,7 @@
     <ClInclude Include="src\ModelViewerWindowMessage.h" />
     <ClInclude Include="src\pch.h" />
     <ClInclude Include="src\math\Vector.h" />
+    <ClInclude Include="src\stdext.h" />
     <ClInclude Include="src\ThreadPool.h" />
     <ClInclude Include="src\Win32Exception.h" />
     <ClInclude Include="src\engine\TextureParser.h" />

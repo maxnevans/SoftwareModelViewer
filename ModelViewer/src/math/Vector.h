@@ -1,5 +1,6 @@
 #pragma once
 #include "pch.h"
+#include "stdext.h"
 #include "Matrix.h"
 
 namespace ModelViewer
@@ -76,6 +77,17 @@ namespace ModelViewer
                 m_data[2] * vec[0] - m_data[0] * vec[2],
                 m_data[0] * vec[1] - m_data[1] * vec[0]
             });
+        }
+
+        template<typename E>
+        Vector<typename stdext::promote<T, E>::type, Size> componentwiseMultiplication(const Vector<E, Size>& rhs) const
+        {
+            Vector<stdext::promote<T, E>::type, Size> out;
+
+            for (std::size_t i = 0; i < Size; i++)
+                out[i] = m_data[i] * rhs[i];
+            
+            return out;
         }
 
         T& operator[](size_t index)
@@ -197,7 +209,24 @@ namespace ModelViewer
                 m_data[i] -= vec[i];
 
             return *this;
-        } 
+        }
+
+        Vector operator-() const
+        {
+            auto output = m_data;
+            for (int i = 0; i < Size; i++)
+                output[i] = -m_data[i];
+
+            return Vector(std::move(output));
+        }
+
+        Vector& operator-()
+        {
+            for (int i = 0; i < Size; i++)
+                m_data[i] = -m_data[i];
+
+            return *this;
+        }
 
         template<typename E>
         operator Vector<E, Size>() const
