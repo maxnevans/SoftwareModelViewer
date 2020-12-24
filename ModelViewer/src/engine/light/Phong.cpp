@@ -21,13 +21,14 @@ namespace ModelViewer
 
                 // TODO: remove hardcode viewPosition
                 const Vec3<double> viewPosition = { { 0.0, 0.0, -3.0 } };
-                const Vec3<double> viewDirection = viewPosition - worldVertex;
+                const Vec3<double> viewDirection = (viewPosition - worldVertex).normalize();
 
                 const double cosTheta = (std::max)(0.0, normal.cos(lightDirection));
 
                 constexpr double ka = 0.5;
                 constexpr double kd = 1;
-                constexpr double sh = 1;
+                constexpr double extraKS = 3;
+                constexpr double sh = 4;
                 
                 Vec3<double> ambient = static_cast<Vec3<double>>(m_ambient.color) * ka;
                 Vec3<double> diffuse = Vec3<double>{};
@@ -40,7 +41,7 @@ namespace ModelViewer
                     diffuse = static_cast<Vec3<double>>(m_directional.color) * cosTheta * kd;
 
                     specular = static_cast<Vec3<double>>(m_directional.color) 
-                        * std::pow((std::max)(0.0, reflectionDirection.dotProduct(viewDirection)), sh) * ks;
+                        * std::pow((std::max)(0.0, reflectionDirection.dotProduct(viewDirection)), sh) * ks * extraKS;
                 }
 
                 Vec3<double> fragmentColor = ((ambient + diffuse + specular) / Color::MAX).componentwiseMultiplication(
