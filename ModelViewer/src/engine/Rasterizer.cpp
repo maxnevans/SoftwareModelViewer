@@ -460,15 +460,25 @@ namespace ModelViewer
 
             const int totalHeight = c[Y] - a[Y];
 
+            // Perspective correction for UV
+            uvA /= zA;
+            uvB /= zB;
+            uvC /= zC;
+
+            const double aUVCorrection = 1 / zA;
+            const double bUVCorrection = 1 / zB;
+            const double cUVCorrection = 1 / zC;
+
             const Vec2<int> alphaDistanceVec = c - a;
             const double alphaZDistance = zC - zA;
             const Vec3<double> alphaWorldVertexDistance = static_cast<Vec3<double>>(cWorldVertex - aWorldVertex);
             const Vec3<double> alphaUVDistance = uvC - uvA;
+            const double alphaUVCorrectionDistance = cUVCorrection - aUVCorrection;
 
-            const auto drawBetaPartTriangle = [this](const Vec2<int>& a, double zA, const Vec3<double>& aWorldVertex, const Vec3<double>& uvA,
-                const Vec2<int>& b, double zB, const Vec3<double>& bWorldVertex, const Vec3<double>& uvB,
-                const Vec2<int>& zeroPoint, double zZeroPoint, const Vec3<double>& zeroPointWorldVertex, const Vec3<double>& zeroPointUV,
-                double alphaZDistance, const Vec3<double>& alphaWorldVertexDistance, const Vec3<double>& alphaUVDistance,
+            const auto drawBetaPartTriangle = [this](const Vec2<int>& a, double zA, const Vec3<double>& aWorldVertex, const Vec3<double>& uvA, double aUVCorrection,
+                const Vec2<int>& b, double zB, const Vec3<double>& bWorldVertex, const Vec3<double>& uvB, double bUVCorrection,
+                const Vec2<int>& zeroPoint, double zZeroPoint, const Vec3<double>& zeroPointWorldVertex, const Vec3<double>& zeroPointUV, double zeroPointUVCorrection,
+                double alphaZDistance, const Vec3<double>& alphaWorldVertexDistance, const Vec3<double>& alphaUVDistance, double alphaUVCorrectionDistance,
                 int totalHeight, const Vec2<int>& alphaDistanceVec, 
                 const DiffuseMap& diffuseMap, const NormalMap& normalMap, const SpecularMap& specularMap)
             {
@@ -477,6 +487,7 @@ namespace ModelViewer
                 const auto betaZDistance = zB - zA;
                 const auto betaUVDistance = uvB - uvA;
                 const auto betaWorldVertexDistance = bWorldVertex - aWorldVertex;
+                const auto betaUVCorrectionDistance = 1 / zB - 1 / zA;
 
                 for (int y = a[Y]; y <= b[Y]; y++)
                 {
@@ -487,11 +498,13 @@ namespace ModelViewer
                     double alphaZ = zZeroPoint + alphaZDistance * alpha;
                     Vec3<double> alphaUV = zeroPointUV + alphaUVDistance * alpha;
                     Vec3<double> alphaWorldVertex = zeroPointWorldVertex + alphaWorldVertexDistance * alpha;
+                    auto alphaUVCorrection = zeroPointUVCorrection + alphaUVCorrectionDistance * alpha;
 
                     double betaX = a[X] + static_cast<double>(betaDistanceVec[X]) * beta;
                     double betaZ = zA + betaZDistance * beta;
                     Vec3<double> betaUV = uvA + betaUVDistance * beta;
                     Vec3<double> betaWorldVertex = aWorldVertex + betaWorldVertexDistance * beta;
+                    auto betaUVCorrection = aUVCorrection + betaUVCorrectionDistance * beta;
 
                     if (alphaX > betaX)
                     {
@@ -499,28 +512,29 @@ namespace ModelViewer
                         std::swap(alphaZ, betaZ);
                         std::swap(alphaUV, betaUV);
                         std::swap(alphaWorldVertex, betaWorldVertex);
+                        std::swap(alphaUVCorrection, betaUVCorrection);
                     }
 
-                    drawHorizontalLineUnsafe(static_cast<int>(alphaX - 1), alphaZ, alphaWorldVertex, alphaUV,
-                        static_cast<int>(std::ceil(betaX + 2)), betaZ, betaWorldVertex, betaUV, y, 
-                        diffuseMap, normalMap, specularMap);
+                    drawHorizontalLineUnsafe(static_cast<int>(alphaX - 1), alphaZ, alphaWorldVertex, alphaUV / alphaUVCorrection,
+                        static_cast<int>(std::ceil(betaX + 2)), betaZ, betaWorldVertex, betaUV / betaUVCorrection,
+                        y, diffuseMap, normalMap, specularMap);
                 }
             };
 
             // Draw top beta part
-            drawBetaPartTriangle(a, zA, aWorldVertex, uvA,
-                b, zB, bWorldVertex, uvB,
-                a, zA, aWorldVertex, uvA,
-                alphaZDistance, alphaWorldVertexDistance, alphaUVDistance,
+            drawBetaPartTriangle(a, zA, aWorldVertex, uvA, aUVCorrection,
+                b, zB, bWorldVertex, uvB, bUVCorrection,
+                a, zA, aWorldVertex, uvA, aUVCorrection,
+                alphaZDistance, alphaWorldVertexDistance, alphaUVDistance, alphaUVCorrectionDistance,
                 totalHeight, alphaDistanceVec, 
                 diffuseMap, normalMap, specularMap);
 
             // Draw bottom beta part
-            drawBetaPartTriangle(b, zB, bWorldVertex, uvB,
-                c, zC, cWorldVertex, uvC,
-                a, zA, aWorldVertex, uvA,
-                alphaZDistance, alphaWorldVertexDistance, alphaUVDistance,
-                totalHeight, alphaDistanceVec, 
+            drawBetaPartTriangle(b, zB, bWorldVertex, uvB, bUVCorrection,
+                c, zC, cWorldVertex, uvC, cUVCorrection,
+                a, zA, aWorldVertex, uvA, aUVCorrection,
+                alphaZDistance, alphaWorldVertexDistance, alphaUVDistance, alphaUVCorrectionDistance,
+                totalHeight, alphaDistanceVec,
                 diffuseMap, normalMap, specularMap);
         }
 
