@@ -23,12 +23,12 @@ namespace ModelViewer
             return m_data[n * Size + m];
         }
 
-        inline const T& operator()(int m, int n) const
+        inline const T& operator()(int column, int row) const
         {
-            expect(m >= 0 && m < Size);
-            expect(n >= 0 && n < Size);
+            expect(column >= 0 && column < Size);
+            expect(row >= 0 && row < Size);
 
-            return m_data[n * Size + m];
+            return m_data[row * Size + column];
         }
 
         Matrix operator*(const Matrix& matrix) const
@@ -129,6 +129,11 @@ namespace ModelViewer
         Matrix& operator-=(T number)
         {
             return *this += -number;
+        }
+
+        std::size_t size() const
+        {
+            return Size;
         }
 
         template<typename E, std::size_t NewSize>
