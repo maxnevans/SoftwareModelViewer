@@ -192,7 +192,7 @@ namespace ModelViewer
             void Object::updateCachedModelMatrices()
             {
                 m_CacheModelMatrix = createModelMatrix(m_TranslateVector, m_RotateVector, m_ScaleVector);
-                m_CacheNormalModelMatrix = m_CacheModelMatrix.inverse().transpose();
+                m_CacheNormalModelMatrix = createModelMatrix(Vec4<double>{ {0, 0, 0} }, m_RotateVector, m_ScaleVector).inverse().transpose();
             }
         }
     }
